@@ -1,0 +1,75 @@
+{
+  "name": "notus-react",
+  "version": "1.1.0",
+  "description": "Notus React - A free Tailwind CSS and React UI Kit and Admin by Creative Tim.",
+  "repository": "https://github.com/creativetimofficial/notus-react",
+  "license": "MIT",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "5.15.3",
+    "@fullcalendar/core": "^6.1.18",
+    "@fullcalendar/daygrid": "^6.1.18",
+    "@fullcalendar/interaction": "^6.1.18",
+    "@fullcalendar/react": "^6.1.18",
+    "@fullcalendar/timegrid": "^6.1.18",
+    "@heroicons/react": "^2.2.0",
+    "@popperjs/core": "2.9.1",
+    "@tailwindcss/forms": "0.2.1",
+    "antd": "^5.24.4",
+    "aos": "^2.3.4",
+    "autoprefixer": "^10.2.5",
+    "chart.js": "2.9.4",
+    "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
+    "framer-motion": "^12.23.9",
+    "gulp": "4.0.2",
+    "gulp-append-prepend": "1.0.8",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.5.28",
+    "lucide-react": "^0.525.0",
+    "moment": "^2.30.1",
+    "postcss": "^8.4.39",
+    "postcss-loader": "^8.1.1",
+    "react": "18.3.1",
+    "react-big-calendar": "^1.18.0",
+    "react-calendar": "^5.1.0",
+    "react-countup": "^6.5.3",
+    "react-dom": "18.3.1",
+    "react-icons": "^5.5.0",
+    "react-intersection-observer": "^9.16.0",
+    "react-parallax-tilt": "^1.7.301",
+    "react-router": "5.3.4",
+    "react-router-dom": "5.3.4",
+    "react-scripts": "5.0.1",
+    "react-tsparticles": "^2.12.2",
+    "tailwindcss": "^2.0.4",
+    "tsparticles": "^3.8.1",
+    "typewriter-effect": "^2.22.0",
+    "xlsx": "^0.18.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build && gulp licenses",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm run build:tailwind && npm start",
+    "build:tailwind": "tailwind build src/assets/styles/index.css -o src/assets/styles/tailwind.css"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "optionalDependencies": {
+    "typescript": "4.2.3"
+  }
+}

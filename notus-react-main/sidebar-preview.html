@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aperçu Sidebar - Section Notifications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .preview-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #003061;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-preview {
+            display: flex;
+            min-height: 500px;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #f8f9fa;
+            border-right: 2px solid #e9ecef;
+            padding: 20px 0;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            padding: 10px 20px;
+            margin-bottom: 8px;
+            background: #e9ecef;
+            border-left: 4px solid #003061;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #495057;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-item:hover {
+            background: #e3f2fd;
+            border-left-color: #003061;
+            color: #003061;
+        }
+        
+        .sidebar-item.new {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 100%);
+            border-left-color: #28a745;
+            animation: pulse 2s infinite;
+        }
+        
+        .sidebar-item i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .success-message {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #003061;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="header">
+            <h1><i class="fas fa-bell"></i> Aperçu Sidebar - Section Notifications Ajoutée</h1>
+            <p>Voici où vous devriez voir la nouvelle section dans votre sidebar</p>
+        </div>
+        
+        <div class="sidebar-preview">
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <div class="section-title">🏠 Tableau de Bord</div>
+                    <a href="#" class="sidebar-item">
+                        <i class="fas fa-tv"></i>
+                        Dashboard
+                    </a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="section-title">🏗️ Gestion des Projets</div>
+                    <a href="#" class="sidebar-item">
+                        <i class="fas fa-project-diagram"></i>
+                        Projets
+                    </a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="section-title">📈 Analytics & Rapports</div>
+                    <a href="#" class="sidebar-item">
+                        <i class="fas fa-chart-line"></i>
+                        Analytics Dashboard
+                    </a>
+                </div>
+                
+                <div class="sidebar-section highlight">
+                    <div class="section-title">🔔 Notifications</div>
+                    <a href="#" class="sidebar-item new">
+                        <i class="fas fa-bell"></i>
+                        Centre Notifications
+                    </a>
+                    <a href="#" class="sidebar-item new">
+                        <i class="fas fa-warehouse"></i>
+                        Dashboard Magasinier
+                    </a>
+                    <a href="#" class="sidebar-item new">
+                        <i class="fas fa-vial"></i>
+                        Test Système
+                    </a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="section-title">📱 Modules Mobiles</div>
+                    <a href="#" class="sidebar-item">
+                        <i class="fas fa-mobile-alt"></i>
+                        App Mobile Techniciens
+                    </a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="section-title">⚙️ Administration</div>
+                    <a href="#" class="sidebar-item">
+                        <i class="fas fa-tools"></i>
+                        Gestion des Utilisateurs
+                    </a>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="success-message">
+                    <h3><i class="fas fa-check-circle"></i> Section "🔔 Notifications" Ajoutée !</h3>
+                    <p>La nouvelle section est maintenant disponible dans votre sidebar</p>
+                </div>
+                
+                <div class="instructions">
+                    <h4><i class="fas fa-info-circle"></i> Instructions</h4>
+                    <ol>
+                        <li><strong>Attendez</strong> que le serveur React termine la compilation</li>
+                        <li><strong>Rafraîchissez</strong> votre navigateur avec Ctrl + F5</li>
+                        <li><strong>Cherchez</strong> la section "🔔 Notifications" dans le sidebar</li>
+                        <li><strong>Cliquez</strong> sur "Centre Notifications" pour tester</li>
+                    </ol>
+                    
+                    <p><strong>Note :</strong> La section est encadrée en jaune dans cet aperçu pour la mettre en évidence. Dans votre application, elle apparaîtra normalement intégrée au sidebar.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

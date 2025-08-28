@@ -1,0 +1,31 @@
+.verify-btn-alone {
+    background: #003061;
+    color: #fff;
+    border: none;
+    border-radius: 0.7rem;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.55rem 1.3rem;
+    min-width: 150px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.2s;
+    display: inline-block;
+    cursor: pointer;
+  }
+  .verify-btn-alone:hover:not(:disabled) {
+    background: #00264d;
+  }
+  .verify-btn-alone:disabled {
+    background: #e5e7eb;
+    color: #a1a1aa;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  @media (max-width: 600px) {
+    .verify-btn-alone {
+      min-width: 100%;
+      font-size: 0.98rem;
+    }
+  }
+  

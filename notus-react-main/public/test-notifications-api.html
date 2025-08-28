@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔔 Test API Notifications - Diagnostic Temps Réel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #003061 0%, #0056b3 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #003061;
+        }
+        
+        .test-section h3 {
+            color: #003061;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16,185,129,0.3);
+        }
+        
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 8px 20px rgba(239,68,68,0.3);
+        }
+        
+        .results {
+            background: #1f2937;
+            color: #f3f4f6;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
+        
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status.error {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        
+        .status.loading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .notification-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-left: 4px solid #003061;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .notification-card h4 {
+            color: #003061;
+            margin-bottom: 0.5rem;
+        }
+        
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .auto-refresh {
+            background: #e0f2fe;
+            border: 2px solid #0288d1;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .auto-refresh.active {
+            background: #e8f5e8;
+            border-color: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Test API Notifications - Diagnostic Temps Réel</h1>
+            <p>Testez la synchronisation entre Dashboard Magasinier et Centre de Notifications</p>
+        </div>
+        
+        <div class="content">
+            <!-- Section Auto-Refresh -->
+            <div class="auto-refresh" id="autoRefreshStatus">
+                <h3>🔄 Synchronisation Automatique</h3>
+                <p>Status: <span id="refreshStatus">Arrêtée</span></p>
+                <button class="btn" onclick="toggleAutoRefresh()" id="autoRefreshBtn">▶️ Démarrer Auto-Refresh (30s)</button>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Prochaine synchronisation dans: <span id="countdown">--</span></p>
+            </div>
+            
+            <!-- Test 1: Vérification API Utilisateur -->
+            <div class="test-section">
+                <h3>👤 Test 1: Vérification Utilisateur API</h3>
+                <p>Teste si l'API peut récupérer les notifications pour l'utilisateur magasinier (ID: 2)</p>
+                <button class="btn" onclick="testUserAPI()">🔍 Tester API Utilisateur</button>
+                <span class="status" id="userStatus">En attente</span>
+                <div class="results" id="userResults" style="display: none;"></div>
+            </div>
+            
+            <!-- Test 2: Comparaison Dashboard vs Centre -->
+            <div class="test-section">
+                <h3>⚖️ Test 2: Comparaison Dashboard vs Centre de Notifications</h3>
+                <p>Compare les données récupérées par les deux interfaces</p>
+                <button class="btn" onclick="compareDashboardCenter()">📊 Comparer les Sources</button>
+                <span class="status" id="compareStatus">En attente</span>
+                <div class="results" id="compareResults" style="display: none;"></div>
+            </div>
+            
+            <!-- Test 3: Création Sous-Projet Simulation -->
+            <div class="test-section">
+                <h3>🏗️ Test 3: Simulation Création Sous-Projet</h3>
+                <p>Simule la création d'un sous-projet et vérifie l'envoi de notification</p>
+                <button class="btn" onclick="simulateSubProjectCreation()">🚀 Simuler Création Sous-Projet</button>
+                <span class="status" id="simulateStatus">En attente</span>
+                <div class="results" id="simulateResults" style="display: none;"></div>
+            </div>
+            
+            <!-- Test 4: Affichage Notifications Temps Réel -->
+            <div class="test-section">
+                <h3>📋 Test 4: Notifications Temps Réel</h3>
+                <p>Affiche les notifications actuelles et surveille les changements</p>
+                <button class="btn" onclick="loadRealTimeNotifications()">🔄 Charger Notifications</button>
+                <button class="btn btn-danger" onclick="clearNotifications()">🗑️ Vider Cache</button>
+                <span class="status" id="notifStatus">En attente</span>
+                <div id="notificationsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+        let countdownInterval = null;
+        let countdownSeconds = 30;
+        
+        // Configuration API
+        const API_BASE = 'http://localhost:8089/PI';
+        const USER_ID = 2; // Linda Benjeddou (MAGASINIER)
+        
+        // Fonctions utilitaires
+        function updateStatus(elementId, status, className) {
+            const element = document.getElementById(elementId);
+            element.textContent = status;
+            element.className = `status ${className}`;
+        }
+        
+        function showResults(elementId, content) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.textContent = content;
+        }
+        
+        function log(message) {
+            console.log(`[${new Date().toLocaleTimeString()}] ${message}`);
+        }
+        
+        // Test 1: API Utilisateur
+        async function testUserAPI() {
+            updateStatus('userStatus', 'Test en cours...', 'loading');
+            
+            try {
+                log('🔍 Test API utilisateur démarré');
+                const response = await fetch(`${API_BASE}/notifications/user/${USER_ID}`);
+                
+                const result = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    url: response.url,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    result.data = data;
+                    result.count = data.length;
+                    
+                    updateStatus('userStatus', `✅ Succès (${data.length} notifications)`, 'success');
+                    showResults('userResults', 
+                        `✅ API FONCTIONNELLE\\n` +
+                        `📊 Statut: ${response.status} ${response.statusText}\\n` +
+                        `🔗 URL: ${response.url}\\n` +
+                        `📋 Notifications trouvées: ${data.length}\\n` +
+                        `📄 Données: ${JSON.stringify(data, null, 2)}`
+                    );
+                    log(`✅ API utilisateur réussie: ${data.length} notifications`);
+                } else {
+                    updateStatus('userStatus', `❌ Erreur ${response.status}`, 'error');
+                    showResults('userResults', 
+                        `❌ ERREUR API\\n` +
+                        `📊 Statut: ${response.status} ${response.statusText}\\n` +
+                        `🔗 URL: ${response.url}\\n` +
+                        `⚠️ L'API ne répond pas correctement`
+                    );
+                    log(`❌ Erreur API utilisateur: ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('userStatus', '❌ Erreur réseau', 'error');
+                showResults('userResults', 
+                    `❌ ERREUR RÉSEAU\\n` +
+                    `🔗 URL tentée: ${API_BASE}/notifications/user/${USER_ID}\\n` +
+                    `⚠️ Erreur: ${error.message}\\n` +
+                    `💡 Vérifiez que le backend Spring Boot est démarré`
+                );
+                log(`❌ Erreur réseau: ${error.message}`);
+            }
+        }
+        
+        // Test 2: Comparaison Dashboard vs Centre
+        async function compareDashboardCenter() {
+            updateStatus('compareStatus', 'Comparaison en cours...', 'loading');
+            
+            try {
+                log('⚖️ Comparaison dashboard vs centre démarrée');
+                
+                // Test des deux URLs utilisées
+                const dashboardUrl = `${API_BASE}/PI/notifications/user/${USER_ID}`; // URL dashboard
+                const centerUrl = `${API_BASE}/notifications/user/${USER_ID}`; // URL centre
+                
+                const [dashboardResponse, centerResponse] = await Promise.allSettled([
+                    fetch(dashboardUrl),
+                    fetch(centerUrl)
+                ]);
+                
+                let comparison = `🔍 COMPARAISON DES SOURCES\\n\\n`;
+                
+                // Dashboard
+                comparison += `📊 DASHBOARD MAGASINIER:\\n`;
+                comparison += `🔗 URL: ${dashboardUrl}\\n`;
+                if (dashboardResponse.status === 'fulfilled') {
+                    comparison += `📊 Statut: ${dashboardResponse.value.status}\\n`;
+                    if (dashboardResponse.value.ok) {
+                        const data = await dashboardResponse.value.json();
+                        comparison += `📋 Notifications: ${data.length}\\n`;
+                        comparison += `✅ Données: ${JSON.stringify(data.slice(0, 2), null, 2)}\\n`;
+                    }
+                } else {
+                    comparison += `❌ Erreur: ${dashboardResponse.reason.message}\\n`;
+                }
+                
+                comparison += `\\n`;
+                
+                // Centre de notifications
+                comparison += `🔔 CENTRE DE NOTIFICATIONS:\\n`;
+                comparison += `🔗 URL: ${centerUrl}\\n`;
+                if (centerResponse.status === 'fulfilled') {
+                    comparison += `📊 Statut: ${centerResponse.value.status}\\n`;
+                    if (centerResponse.value.ok) {
+                        const data = await centerResponse.value.json();
+                        comparison += `📋 Notifications: ${data.length}\\n`;
+                        comparison += `✅ Données: ${JSON.stringify(data.slice(0, 2), null, 2)}\\n`;
+                    }
+                } else {
+                    comparison += `❌ Erreur: ${centerResponse.reason.message}\\n`;
+                }
+                
+                updateStatus('compareStatus', '✅ Comparaison terminée', 'success');
+                showResults('compareResults', comparison);
+                log('⚖️ Comparaison terminée');
+                
+            } catch (error) {
+                updateStatus('compareStatus', '❌ Erreur', 'error');
+                showResults('compareResults', `❌ Erreur lors de la comparaison: ${error.message}`);
+                log(`❌ Erreur comparaison: ${error.message}`);
+            }
+        }
+        
+        // Test 3: Simulation création sous-projet
+        async function simulateSubProjectCreation() {
+            updateStatus('simulateStatus', 'Simulation en cours...', 'loading');
+            
+            try {
+                log('🏗️ Simulation création sous-projet démarrée');
+                
+                const notificationData = {
+                    type: 'SOUS_PROJET_CREATED',
+                    title: 'Nouveau sous-projet créé (TEST)',
+                    message: 'Test de création de sous-projet depuis le diagnostic',
+                    priority: 'NORMAL',
+                    projectName: 'Projet Test Diagnostic',
+                    sousProjetName: 'Sous-Projet Test API',
+                    componentCount: 5,
+                    totalPrice: 250.00
+                };
+                
+                const response = await fetch(`${API_BASE}/notifications/sous-projet-created`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(notificationData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    updateStatus('simulateStatus', '✅ Notification envoyée', 'success');
+                    showResults('simulateResults', 
+                        `✅ NOTIFICATION CRÉÉE AVEC SUCCÈS\\n` +
+                        `📊 Statut: ${response.status}\\n` +
+                        `🔔 Type: ${notificationData.type}\\n` +
+                        `📋 Titre: ${notificationData.title}\\n` +
+                        `💰 Prix total: ${notificationData.totalPrice}€\\n` +
+                        `📄 Réponse: ${JSON.stringify(result, null, 2)}\\n\\n` +
+                        `💡 Vérifiez maintenant le dashboard magasinier et le centre de notifications!`
+                    );
+                    log('✅ Notification sous-projet créée avec succès');
+                } else {
+                    updateStatus('simulateStatus', `❌ Erreur ${response.status}`, 'error');
+                    showResults('simulateResults', 
+                        `❌ ERREUR LORS DE LA CRÉATION\\n` +
+                        `📊 Statut: ${response.status} ${response.statusText}\\n` +
+                        `🔗 URL: ${response.url}\\n` +
+                        `⚠️ La notification n'a pas pu être créée`
+                    );
+                    log(`❌ Erreur création notification: ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('simulateStatus', '❌ Erreur réseau', 'error');
+                showResults('simulateResults', 
+                    `❌ ERREUR RÉSEAU\\n` +
+                    `⚠️ Erreur: ${error.message}\\n` +
+                    `💡 Vérifiez que le backend est accessible`
+                );
+                log(`❌ Erreur réseau simulation: ${error.message}`);
+            }
+        }
+        
+        // Test 4: Notifications temps réel
+        async function loadRealTimeNotifications() {
+            updateStatus('notifStatus', 'Chargement...', 'loading');
+            
+            try {
+                log('📋 Chargement notifications temps réel');
+                const response = await fetch(`${API_BASE}/notifications/user/${USER_ID}`);
+                
+                if (response.ok) {
+                    const notifications = await response.json();
+                    updateStatus('notifStatus', `✅ ${notifications.length} notifications`, 'success');
+                    
+                    const listElement = document.getElementById('notificationsList');
+                    listElement.innerHTML = '';
+                    
+                    if (notifications.length === 0) {
+                        listElement.innerHTML = '<div class="notification-card"><h4>📭 Aucune notification</h4><p>Créez un sous-projet pour générer des notifications!</p></div>';
+                    } else {
+                        notifications.forEach((notif, index) => {
+                            const card = document.createElement('div');
+                            card.className = 'notification-card';
+                            card.innerHTML = `
+                                <h4>${notif.title || 'Notification #' + (index + 1)}</h4>
+                                <p>${notif.message || 'Pas de message'}</p>
+                                <div class="notification-meta">
+                                    <span>🏷️ Type: ${notif.type || 'N/A'}</span>
+                                    <span>⚡ Priorité: ${notif.priority || 'N/A'}</span>
+                                    <span>📅 Date: ${notif.createdAt || 'N/A'}</span>
+                                </div>
+                            `;
+                            listElement.appendChild(card);
+                        });
+                    }
+                    log(`📋 ${notifications.length} notifications affichées`);
+                } else {
+                    updateStatus('notifStatus', `❌ Erreur ${response.status}`, 'error');
+                    log(`❌ Erreur chargement notifications: ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('notifStatus', '❌ Erreur réseau', 'error');
+                log(`❌ Erreur réseau notifications: ${error.message}`);
+            }
+        }
+        
+        // Auto-refresh
+        function toggleAutoRefresh() {
+            if (autoRefreshInterval) {
+                // Arrêter
+                clearInterval(autoRefreshInterval);
+                clearInterval(countdownInterval);
+                autoRefreshInterval = null;
+                countdownInterval = null;
+                
+                document.getElementById('autoRefreshBtn').innerHTML = '▶️ Démarrer Auto-Refresh (30s)';
+                document.getElementById('refreshStatus').textContent = 'Arrêtée';
+                document.getElementById('countdown').textContent = '--';
+                document.getElementById('autoRefreshStatus').classList.remove('active');
+                log('🛑 Auto-refresh arrêté');
+            } else {
+                // Démarrer
+                autoRefreshInterval = setInterval(() => {
+                    log('🔄 Auto-refresh: rechargement des notifications');
+                    loadRealTimeNotifications();
+                    countdownSeconds = 30;
+                }, 30000);
+                
+                countdownSeconds = 30;
+                countdownInterval = setInterval(() => {
+                    countdownSeconds--;
+                    document.getElementById('countdown').textContent = countdownSeconds + 's';
+                    if (countdownSeconds <= 0) {
+                        countdownSeconds = 30;
+                    }
+                }, 1000);
+                
+                document.getElementById('autoRefreshBtn').innerHTML = '⏸️ Arrêter Auto-Refresh';
+                document.getElementById('refreshStatus').textContent = 'Active (30s)';
+                document.getElementById('autoRefreshStatus').classList.add('active');
+                log('▶️ Auto-refresh démarré (30s)');
+                
+                // Premier chargement immédiat
+                loadRealTimeNotifications();
+            }
+        }
+        
+        function clearNotifications() {
+            document.getElementById('notificationsList').innerHTML = '';
+            updateStatus('notifStatus', 'Cache vidé', 'success');
+            log('🗑️ Cache notifications vidé');
+        }
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Diagnostic API Notifications initialisé');
+            console.log('🔧 Configuration:', { API_BASE, USER_ID });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple - Notifications Magasinier</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .button { padding: 12px 20px; margin: 10px 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .button:hover { background: #0056b3; }
+        .button:disabled { background: #ccc; cursor: not-allowed; }
+        .result { margin-top: 15px; padding: 15px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; white-space: pre-wrap; }
+        input, select { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Test Simple - Notifications Magasinier</h1>
+        <p>Ce test va créer un sous-projet et vérifier si les notifications sont envoyées aux magasiniers.</p>
+        
+        <div class="form-group">
+            <label>ID du Projet Parent:</label>
+            <input type="number" id="projectId" value="1" placeholder="ID du projet">
+        </div>
+        
+        <div class="form-group">
+            <label>Nom du Sous-projet:</label>
+            <input type="text" id="sousProjetName" value="Test Notification" placeholder="Nom du sous-projet">
+        </div>
+        
+        <div class="form-group">
+            <label>Composants (séparés par des virgules):</label>
+            <input type="text" id="components" value="COMP001,COMP002" placeholder="COMP001,COMP002">
+        </div>
+        
+        <button class="button" onclick="createSousProjet()">🚀 Créer Sous-projet et Tester Notifications</button>
+        <button class="button" onclick="checkNotifications()">📬 Vérifier Notifications Magasiniers</button>
+        <button class="button" onclick="checkMagasiniers()">👥 Voir Liste Magasiniers</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8089/PI';
+        
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div class="result ${type}">
+                    <strong>Résultat (${new Date().toLocaleTimeString()}):</strong>
+                    <pre>${typeof message === 'object' ? JSON.stringify(message, null, 2) : message}</pre>
+                </div>
+            `;
+        }
+        
+        async function makeRequest(url, options = {}) {
+            try {
+                console.log('🔍 Requête vers:', url);
+                const response = await fetch(url, {
+                    mode: 'cors',
+                    credentials: 'omit',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    ...options
+                });
+                
+                console.log('📥 Status de réponse:', response.status, response.statusText);
+                
+                const text = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    data = text;
+                }
+                
+                console.log('📥 Données reçues:', data);
+                return { success: response.ok, status: response.status, data };
+            } catch (error) {
+                console.error('❌ Erreur détaillée:', error);
+                console.error('❌ Type d\'erreur:', error.name);
+                console.error('❌ Message:', error.message);
+                return { success: false, error: error.message, errorType: error.name };
+            }
+        }
+        
+        async function createSousProjet() {
+            const projectId = document.getElementById('projectId').value;
+            const sousProjetName = document.getElementById('sousProjetName').value;
+            const componentsText = document.getElementById('components').value;
+            
+            if (!projectId || !sousProjetName) {
+                showResult('Veuillez remplir tous les champs obligatoires', 'error');
+                return;
+            }
+            
+            const components = componentsText ? componentsText.split(',').map(c => c.trim()).filter(c => c) : [];
+            
+            const testData = {
+                sousProjetName: sousProjetName + " " + new Date().toLocaleTimeString(),
+                description: "Sous-projet de test pour vérifier les notifications aux magasiniers",
+                totalPrice: 1500,
+                components: components,
+                users: [1] // ID utilisateur de test
+            };
+            
+            showResult('🔄 Création du sous-projet en cours...', 'info');
+            
+            const result = await makeRequest(`${API_BASE}/sousprojets/create/${projectId}`, {
+                method: 'POST',
+                body: JSON.stringify(testData)
+            });
+            
+            if (result.success) {
+                showResult({
+                    message: '✅ Sous-projet créé avec succès!',
+                    sousProjetId: result.data.id,
+                    sousProjetName: result.data.sousProjetName,
+                    note: '🔔 Les notifications aux magasiniers devraient être automatiquement envoyées.',
+                    nextStep: 'Cliquez sur "Vérifier Notifications Magasiniers" pour voir les notifications créées.'
+                }, 'success');
+            } else {
+                showResult({
+                    error: '❌ Erreur lors de la création du sous-projet',
+                    details: result
+                }, 'error');
+            }
+        }
+        
+        async function checkMagasiniers() {
+            showResult('🔄 Récupération des magasiniers...', 'info');
+            
+            const result = await makeRequest(`${API_BASE}/user/all`);
+            
+            if (result.success && Array.isArray(result.data)) {
+                const magasiniers = result.data.filter(user => 
+                    user.role === 'MAGASINIER' || user.role === 'Magasinier'
+                );
+                
+                showResult({
+                    totalUsers: result.data.length,
+                    magasiniersCount: magasiniers.length,
+                    magasiniers: magasiniers.map(m => ({
+                        id: m.id,
+                        nom: `${m.firstName} ${m.lastName}`,
+                        email: m.email,
+                        role: m.role
+                    })),
+                    allRoles: [...new Set(result.data.map(u => u.role))]
+                }, magasiniers.length > 0 ? 'success' : 'error');
+            } else {
+                showResult(result, 'error');
+            }
+        }
+        
+        async function checkNotifications() {
+            showResult('🔄 Vérification des notifications...', 'info');
+            
+            // D'abord récupérer les magasiniers
+            const usersResult = await makeRequest(`${API_BASE}/user/all`);
+            
+            if (!usersResult.success) {
+                showResult('❌ Impossible de récupérer les utilisateurs', 'error');
+                return;
+            }
+            
+            const magasiniers = usersResult.data.filter(user => 
+                user.role === 'MAGASINIER' || user.role === 'Magasinier'
+            );
+            
+            if (magasiniers.length === 0) {
+                showResult('❌ Aucun magasinier trouvé dans le système', 'error');
+                return;
+            }
+            
+            // Vérifier les notifications pour chaque magasinier
+            const notificationResults = [];
+            
+            for (const magasinier of magasiniers) {
+                const notifResult = await makeRequest(`${API_BASE}/notifications/user/${magasinier.id}`);
+                notificationResults.push({
+                    magasinier: `${magasinier.firstName} ${magasinier.lastName} (ID: ${magasinier.id})`,
+                    notifications: notifResult.success ? notifResult.data : `Erreur: ${notifResult.error || notifResult.data}`,
+                    count: notifResult.success && Array.isArray(notifResult.data) ? notifResult.data.length : 0
+                });
+            }
+            
+            const totalNotifications = notificationResults.reduce((sum, r) => sum + r.count, 0);
+            
+            showResult({
+                message: `📬 Résultats des notifications pour ${magasiniers.length} magasiniers`,
+                totalNotifications: totalNotifications,
+                details: notificationResults
+            }, totalNotifications > 0 ? 'success' : 'info');
+        }
+        
+        // Auto-check magasiniers au chargement
+        window.onload = function() {
+            checkMagasiniers();
+        };
+    </script>
+</body>
+</html>

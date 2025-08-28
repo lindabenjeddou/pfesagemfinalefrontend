@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Final - Notifications Magasinier</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .button { padding: 12px 20px; margin: 10px 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .button:hover { background: #0056b3; }
+        .button.success { background: #28a745; }
+        .button.danger { background: #dc3545; }
+        .result { margin-top: 15px; padding: 15px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; white-space: pre-wrap; font-size: 12px; }
+        .step { margin: 20px 0; padding: 15px; border-left: 4px solid #007bff; background: #f8f9fa; }
+        .step h3 { margin-top: 0; color: #007bff; }
+        .logs { background: #000; color: #00ff00; padding: 15px; border-radius: 5px; font-family: 'Courier New', monospace; max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Test Final - Système de Notifications Magasinier</h1>
+        
+        <div class="step">
+            <h3>📋 Instructions de Test</h3>
+            <p>Ce test va vérifier si le système de notifications fonctionne correctement :</p>
+            <ol>
+                <li><strong>Vérifier les magasiniers</strong> - Confirmer qu'il y a des utilisateurs avec le rôle MAGASINIER</li>
+                <li><strong>Tester via le frontend React</strong> - Utiliser l'interface normale pour créer un sous-projet</li>
+                <li><strong>Surveiller les logs backend</strong> - Vérifier que les notifications sont créées</li>
+                <li><strong>Vérifier les notifications</strong> - Confirmer que les notifications apparaissent en base</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>🔍 Étape 1: Vérification des Magasiniers</h3>
+            <button class="button" onclick="checkMagasiniers()">👥 Vérifier Magasiniers</button>
+            <div id="magasiniers-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>🚀 Étape 2: Instructions pour Test Frontend</h3>
+            <div class="warning">
+                <strong>⚠️ IMPORTANT:</strong> Pour tester la création de sous-projet, suivez ces étapes :
+                <ol>
+                    <li>Ouvrez le frontend React : <a href="http://localhost:3000/admin/projet" target="_blank">http://localhost:3000/admin/projet</a></li>
+                    <li>Créez un nouveau sous-projet avec au moins un composant</li>
+                    <li>Surveillez la console du serveur backend pour voir les logs détaillés</li>
+                    <li>Revenez ici pour vérifier les notifications créées</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>📬 Étape 3: Vérification des Notifications</h3>
+            <button class="button success" onclick="checkAllNotifications()">📬 Vérifier Toutes les Notifications</button>
+            <button class="button" onclick="checkRecentNotifications()">🕐 Notifications Récentes (5 min)</button>
+            <div id="notifications-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>🔧 Étape 4: Diagnostic Complet</h3>
+            <button class="button" onclick="runFullDiagnostic()">🔍 Diagnostic Complet</button>
+            <div id="diagnostic-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>📊 Logs Backend Attendus</h3>
+            <div class="logs">
+🔍 === DÉBUT SAUVEGARDE SOUS-PROJET ===
+✅ SousProjet created successfully with ID: X
+🔍 Nom du sous-projet: Test Notification
+🔍 Nombre de composants: 1
+🔍 === DÉBUT ENVOI NOTIFICATIONS ===
+🔔 Appel notifyMagasiniersForSousProjetCreation...
+✅ notifyMagasiniersForSousProjetCreation terminé
+🔔 Appel notifyMagasiniersForComponentOrder avec 1 composants...
+✅ notifyMagasiniersForComponentOrder terminé
+✅ TOUTES LES NOTIFICATIONS ENVOYÉES pour le sous-projet: X
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8089/PI';
+        
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `
+                <div class="result ${type}">
+                    <strong>Résultat (${new Date().toLocaleTimeString()}):</strong>
+                    <pre>${typeof message === 'object' ? JSON.stringify(message, null, 2) : message}</pre>
+                </div>
+            `;
+        }
+        
+        async function makeRequest(url, options = {}) {
+            try {
+                console.log('🔍 Requête vers:', url);
+                const response = await fetch(url, {
+                    mode: 'cors',
+                    credentials: 'omit',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    ...options
+                });
+                
+                const text = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    data = text;
+                }
+                
+                return { success: response.ok, status: response.status, data };
+            } catch (error) {
+                console.error('❌ Erreur:', error);
+                return { success: false, error: error.message, errorType: error.name };
+            }
+        }
+        
+        async function checkMagasiniers() {
+            showResult('magasiniers-result', '🔄 Vérification des magasiniers...', 'info');
+            
+            const result = await makeRequest(`${API_BASE}/user/all`);
+            
+            if (result.success && Array.isArray(result.data)) {
+                const magasiniers = result.data.filter(user => 
+                    user.role === 'MAGASINIER' || user.role === 'Magasinier'
+                );
+                
+                const message = {
+                    status: '✅ Magasiniers trouvés',
+                    totalUsers: result.data.length,
+                    magasiniersCount: magasiniers.length,
+                    magasiniers: magasiniers.map(m => ({
+                        id: m.id,
+                        nom: `${m.firstName} ${m.lastName}`,
+                        email: m.email,
+                        role: m.role
+                    })),
+                    nextStep: magasiniers.length > 0 ? 
+                        '✅ Vous pouvez maintenant créer un sous-projet via le frontend React' :
+                        '❌ PROBLÈME: Aucun magasinier trouvé - les notifications ne peuvent pas être envoyées'
+                };
+                
+                showResult('magasiniers-result', message, magasiniers.length > 0 ? 'success' : 'error');
+            } else {
+                showResult('magasiniers-result', {
+                    error: '❌ Impossible de récupérer les utilisateurs',
+                    details: result
+                }, 'error');
+            }
+        }
+        
+        async function checkAllNotifications() {
+            showResult('notifications-result', '🔄 Vérification de toutes les notifications...', 'info');
+            
+            // D'abord récupérer les magasiniers
+            const usersResult = await makeRequest(`${API_BASE}/user/all`);
+            
+            if (!usersResult.success) {
+                showResult('notifications-result', '❌ Impossible de récupérer les utilisateurs', 'error');
+                return;
+            }
+            
+            const magasiniers = usersResult.data.filter(user => 
+                user.role === 'MAGASINIER' || user.role === 'Magasinier'
+            );
+            
+            if (magasiniers.length === 0) {
+                showResult('notifications-result', '❌ Aucun magasinier trouvé', 'error');
+                return;
+            }
+            
+            // Vérifier les notifications pour chaque magasinier
+            const notificationResults = [];
+            let totalNotifications = 0;
+            
+            for (const magasinier of magasiniers) {
+                const notifResult = await makeRequest(`${API_BASE}/notifications/user/${magasinier.id}`);
+                const notifications = notifResult.success && Array.isArray(notifResult.data) ? notifResult.data : [];
+                
+                notificationResults.push({
+                    magasinier: `${magasinier.firstName} ${magasinier.lastName} (ID: ${magasinier.id})`,
+                    notificationsCount: notifications.length,
+                    notifications: notifications.map(n => ({
+                        id: n.id,
+                        title: n.title,
+                        message: n.message,
+                        type: n.type,
+                        isRead: n.isRead,
+                        createdAt: n.createdAt || 'Date non disponible'
+                    }))
+                });
+                
+                totalNotifications += notifications.length;
+            }
+            
+            const message = {
+                status: totalNotifications > 0 ? '✅ Notifications trouvées' : '⚠️ Aucune notification trouvée',
+                magasiniersCount: magasiniers.length,
+                totalNotifications: totalNotifications,
+                details: notificationResults,
+                recommendation: totalNotifications === 0 ? 
+                    'Créez un sous-projet via le frontend React et vérifiez les logs backend' :
+                    'Les notifications fonctionnent correctement !'
+            };
+            
+            showResult('notifications-result', message, totalNotifications > 0 ? 'success' : 'warning');
+        }
+        
+        async function checkRecentNotifications() {
+            showResult('notifications-result', '🔄 Vérification des notifications récentes...', 'info');
+            
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+            
+            // Récupérer toutes les notifications et filtrer les récentes
+            await checkAllNotifications();
+            
+            // Note: Le filtrage par date nécessiterait une modification du backend
+            // Pour l'instant, on affiche toutes les notifications avec un avertissement
+            setTimeout(() => {
+                const currentResult = document.getElementById('notifications-result').innerHTML;
+                document.getElementById('notifications-result').innerHTML = currentResult + 
+                    '<div class="result info"><strong>Note:</strong> Filtrage par date non implémenté côté backend. Toutes les notifications sont affichées.</div>';
+            }, 1000);
+        }
+        
+        async function runFullDiagnostic() {
+            showResult('diagnostic-result', '🔄 Diagnostic complet en cours...', 'info');
+            
+            const diagnostic = {
+                timestamp: new Date().toISOString(),
+                tests: []
+            };
+            
+            // Test 1: Vérifier la connectivité backend
+            try {
+                const healthCheck = await makeRequest(`${API_BASE}/user/all`);
+                diagnostic.tests.push({
+                    test: 'Connectivité Backend',
+                    status: healthCheck.success ? '✅ OK' : '❌ ÉCHEC',
+                    details: healthCheck.success ? 'Backend accessible' : healthCheck.error
+                });
+            } catch (e) {
+                diagnostic.tests.push({
+                    test: 'Connectivité Backend',
+                    status: '❌ ÉCHEC',
+                    details: e.message
+                });
+            }
+            
+            // Test 2: Vérifier les magasiniers
+            try {
+                const usersResult = await makeRequest(`${API_BASE}/user/all`);
+                const magasiniers = usersResult.success ? 
+                    usersResult.data.filter(u => u.role === 'MAGASINIER' || u.role === 'Magasinier') : [];
+                
+                diagnostic.tests.push({
+                    test: 'Magasiniers Disponibles',
+                    status: magasiniers.length > 0 ? '✅ OK' : '❌ ÉCHEC',
+                    details: `${magasiniers.length} magasinier(s) trouvé(s)`
+                });
+            } catch (e) {
+                diagnostic.tests.push({
+                    test: 'Magasiniers Disponibles',
+                    status: '❌ ÉCHEC',
+                    details: e.message
+                });
+            }
+            
+            // Test 3: Vérifier les projets
+            try {
+                const projectsResult = await makeRequest(`${API_BASE}/projects/all`);
+                diagnostic.tests.push({
+                    test: 'Projets Disponibles',
+                    status: projectsResult.success ? '✅ OK' : '❌ ÉCHEC',
+                    details: projectsResult.success ? 
+                        `${Array.isArray(projectsResult.data) ? projectsResult.data.length : 'N/A'} projet(s)` : 
+                        projectsResult.error
+                });
+            } catch (e) {
+                diagnostic.tests.push({
+                    test: 'Projets Disponibles',
+                    status: '⚠️ AVERTISSEMENT',
+                    details: 'Endpoint projets non accessible (normal si aucun projet)'
+                });
+            }
+            
+            diagnostic.summary = {
+                allTestsPassed: diagnostic.tests.every(t => t.status.includes('✅')),
+                readyForTesting: diagnostic.tests.filter(t => t.status.includes('✅')).length >= 2
+            };
+            
+            diagnostic.recommendations = [
+                'Si tous les tests passent, créez un sous-projet via http://localhost:3000/admin/projet',
+                'Surveillez la console du serveur backend pour voir les logs détaillés',
+                'Revenez ici pour vérifier que les notifications ont été créées',
+                'Si aucune notification n\'apparaît, vérifiez les logs backend pour identifier le problème'
+            ];
+            
+            showResult('diagnostic-result', diagnostic, 
+                diagnostic.summary.allTestsPassed ? 'success' : 'warning');
+        }
+        
+        // Auto-diagnostic au chargement
+        window.onload = function() {
+            checkMagasiniers();
+        };
+    </script>
+</body>
+</html>

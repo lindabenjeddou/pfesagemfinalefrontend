@@ -1,0 +1,63 @@
+.btn-sagemcom {
+  background-color: #003061;
+  color: #fff;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.2s, color 0.2s;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+.btn-sagemcom:hover, .btn-sagemcom:focus {
+  background-color: #00509e;
+  color: #fff;
+}
+/* Masque totalement la scrollbar (et donc ses flèches) */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE et Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
+/* smooth scrollbar hiding for horizontal modules */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE 10+ */
+  scrollbar-width: none;    /* Firefox */
+}
+
+/* gradient button utilitaire */
+.btn-gradient {
+  background-image: linear-gradient(135deg, #1976d2 0%, #63a4ff 100%);
+}
+
+/* glass-card effect */
+.glass-card {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border-radius: 1rem;
+}
+
+/* custom font override, si vous chargez Poppins dans index.html */
+.body-font { font-family: 'Poppins', sans-serif; }
+.bg-orange-500 { background-color: #f97316; }
+.hover:bg-orange-600:hover { background-color: #ea580c; }
+
+/* Empêche les débordements horizontaux */
+html, body, #root, main {
+  overflow-x: hidden;
+}
+
+/* Vos couleurs de bouton orange */
+.bg-orange-500 {
+  background-color: #f97316;
+}
+.hover\:bg-orange-600:hover {
+  background-color: #ea580c;
+}
