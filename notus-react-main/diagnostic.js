@@ -84,7 +84,7 @@ async function runDiagnostic() {
                 if (magasiniers.length > 0) {
                     console.log('\n4. Vérification des notifications...');
                     for (const magasinier of magasiniers) {
-                        const notifResult = await makeRequest(`${API_BASE}/notifications/user/${magasinier.id}`);
+                        const notifResult = await makeRequest(`${API_BASE}/PI/PI/notifications/user/${magasinier.id}`);
                         console.log(`📬 Notifications pour ${magasinier.firstName}:`, notifResult);
                     }
                 }

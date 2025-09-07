@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import moment from "moment";
 import 'moment/locale/fr';
+import { useLanguage } from "../../contexts/LanguageContext";
 
 // Configurer moment.js en français globalement
 moment.locale('fr');
 
 export default function WeeklySchedule() {
+  const { t } = useLanguage();
   const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [startDate, setStartDate] = useState("");
@@ -247,7 +249,7 @@ export default function WeeklySchedule() {
                 paddingBottom: "12px",
                 fontFamily: "'Poppins', sans-serif"
               }}>
-                Emploi du Temps Hebdomadaire
+                {t('schedule.weekly_title', 'Emploi du Temps Hebdomadaire')}
               </h2>
             <div style={{ textAlign: "center", marginBottom: "16px" }}>
               <button

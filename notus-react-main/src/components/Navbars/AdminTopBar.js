@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { useSecurity } from "../../contexts/SecurityContext";
 import NavbarNotifications from "../Notifications/NavbarNotifications.js";
 
 export default function AdminTopBar() {
   const { currentLanguage, changeLanguage, t } = useLanguage();
+  const { user: securityUser, isAuthenticated, logout } = useSecurity();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
@@ -12,39 +14,71 @@ export default function AdminTopBar() {
   const history = useHistory();
 
   useEffect(() => {
-    // Récupérer les informations utilisateur depuis localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
+    const fetchUserDetails = async () => {
       try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('Erreur parsing user data:', error);
-        // Fallback: créer un utilisateur de test pour les notifications
-        setUser({
-          id: 1,
-          firstName: 'Test',
-          lastName: 'Magasinier',
-          role: 'MAGASINIER',
-          email: 'test@sagemcom.com'
+        console.log('🔍 AdminTopBar - Utilisateur du SecurityContext:', securityUser);
+        const token = localStorage.getItem('token');
+        console.log('🔍 AdminTopBar - Token:', token ? 'Présent' : 'Absent');
+        
+        // Données de fallback par défaut améliorées (exactement comme Profile.js)
+        const defaultFallbackData = {
+          firstName: securityUser?.firstName || 'Prénom',
+          lastName: securityUser?.lastName || 'Nom',
+          email: securityUser?.email || 'email@exemple.com',
+          role: securityUser?.role || 'UTILISATEUR',
+          phoneNumber: securityUser?.phoneNumber || '+216 XX XXX XXX',
+          adress: securityUser?.adress || 'Adresse'
+        };
+        
+        // Définir les données de fallback immédiatement pour éviter l'affichage vide
+        setUser(defaultFallbackData);
+        
+        const response = await fetch('http://localhost:8089/PI/user/all', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         });
+        
+        console.log('🔍 AdminTopBar - Réponse API status:', response.status);
+        
+        if (response.ok) {
+          const users = await response.json();
+          console.log('🔍 AdminTopBar - Tous les utilisateurs récupérés:', users);
+          console.log('🔍 AdminTopBar - Recherche utilisateur avec ID:', securityUser?.userId);
+          
+          const currentUser = users.find(u => u.id === securityUser?.userId);
+          console.log('🔍 AdminTopBar - Utilisateur trouvé:', currentUser);
+          
+          if (currentUser) {
+            console.log('✅ AdminTopBar - Utilisation des données API');
+            setUser(currentUser);
+          } else {
+            console.log('⚠️ AdminTopBar - Utilisateur non trouvé, conservation des données de fallback');
+          }
+        } else {
+          console.error('❌ AdminTopBar - Erreur API:', response.status, response.statusText);
+          console.log('⚠️ AdminTopBar - Conservation des données de fallback par défaut');
+        }
+      } catch (error) {
+        console.error('❌ AdminTopBar - Erreur fetch:', error);
+        console.log('⚠️ AdminTopBar - Conservation des données de fallback par défaut');
       }
-    } else {
-      // Fallback: créer un utilisateur de test pour les notifications
-      setUser({
-        id: 1,
-        firstName: 'Test',
-        lastName: 'Magasinier',
-        role: 'MAGASINIER',
-        email: 'test@sagemcom.com'
-      });
-    }
-  }, []);
+    };
+
+    fetchUserDetails();
+  }, [securityUser, isAuthenticated]);
 
   const handleLogout = () => {
-    // Supprimer les données de session/localStorage
+    // Utiliser la fonction logout du SecurityContext
+    if (logout) {
+      logout();
+    }
+    // Nettoyer le localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('sagemcom_user');
+    localStorage.removeItem('sagemcom_login_time');
     // Rediriger vers la page de connexion
     history.push('/auth/login');
   };
@@ -173,7 +207,7 @@ export default function AdminTopBar() {
       </div>
 
       {/* Notifications Magasinier Intégrées */}
-      {user && user.role === 'MAGASINIER' && (
+      {user && user.role === 'MAGASINIER' && user.id && (
         <NavbarNotifications 
           userId={user.id} 
           userRole={user.role}
@@ -373,7 +407,12 @@ export default function AdminTopBar() {
             e.target.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
           }}
         >
-          👤
+          {user?.role === 'ADMIN' && '👑'}
+          {user?.role === 'MAGASINIER' && '📦'}
+          {user?.role === 'TECHNICIEN' && '🔧'}
+          {user?.role === 'MANAGER' && '📊'}
+          {user?.role === 'SUPERVISEUR' && '👥'}
+          {!user?.role && '👤'}
         </button>
 
         {showUserMenu && (
@@ -400,13 +439,21 @@ export default function AdminTopBar() {
                 fontSize: '0.875rem',
                 marginBottom: '0.25rem'
               }}>
-                {t('user.admin', 'Administrateur')}
+                {user ? `${user.firstName || user.firstname || ''} ${user.lastName || user.lastname || ''}`.trim() || `${user.email || 'Utilisateur'}` : 'Chargement...'}
               </div>
               <div style={{
                 fontSize: '0.75rem',
                 color: '#9ca3af'
               }}>
-                admin@sagemcom.com
+                {user?.email || 'admin@sagemcom.com'}
+              </div>
+              <div style={{
+                fontSize: '0.75rem',
+                color: '#3b82f6',
+                fontWeight: '500',
+                marginTop: '0.25rem'
+              }}>
+                {user?.role || 'ADMIN'}
               </div>
             </div>
             

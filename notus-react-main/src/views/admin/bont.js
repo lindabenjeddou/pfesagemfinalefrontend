@@ -56,7 +56,7 @@ export default function Bont() {
       .catch(error => console.error("Erreur lors du chargement des techniciens:", error));
 
     // Charger les composants
-    fetch("http://localhost:8089/PI/component/all")
+    fetch("http://localhost:8089/PI/PI/component/all")
       .then(response => response.json())
       .then(data => {
         setComposantsDisponibles(data);
@@ -67,7 +67,7 @@ export default function Bont() {
   // Fonction pour générer un nouveau bon de travail
   const genererBT = async () => {
     if (!bonTravail.description || !bonTravail.technicienId || bonTravail.composants.length === 0) {
-      setMessage("Veuillez remplir tous les champs obligatoires");
+      setMessage(t('workorder.form.required', "Veuillez remplir tous les champs obligatoires"));
       return;
     }
 
@@ -169,11 +169,11 @@ export default function Bont() {
             fontWeight: '700',
             color: 'white',
             marginBottom: '0.5rem'
-          }}>{t('work_orders.create_title', 'Création de Bon de Travail')}</h1>
+          }}>{t('workorder.title', 'Création de Bon de Travail')}</h1>
           <p style={{
             fontSize: '1.1rem',
             color: 'rgba(255, 255, 255, 0.9)'
-          }}>🏢 {t('work_orders.create_subtitle', 'Gestion et Création des Bons de Travail Sagemcom')}</p>
+          }}>🏢 {t('workorder.subtitle', 'Gestion et Création des Bons de Travail Sagemcom')}</p>
         </div>
 
         {/* Contenu principal */}
@@ -231,12 +231,12 @@ export default function Bont() {
                   fontWeight: '600',
                   color: '#003061',
                   marginBottom: '0.5rem'
-                }}>📄 Description</label>
+                }}>📄 {t('workorder.description', 'Description')}</label>
                 <textarea
                   name="description"
                   value={bonTravail.description}
                   onChange={handleChange}
-                  placeholder="Décrivez les travaux à effectuer..."
+                  placeholder={t('workorder.description.placeholder', 'Décrivez les travaux à effectuer...')}
                   required
                   rows={4}
                   style={{
@@ -266,7 +266,7 @@ export default function Bont() {
                     fontWeight: '600',
                     color: '#003061',
                     marginBottom: '0.5rem'
-                  }}>📅 Date de Début</label>
+                  }}>📅 {t('workorder.start_date', 'Date de Début')}</label>
                   <input
                     type="date"
                     name="dateDebut"
@@ -291,7 +291,7 @@ export default function Bont() {
                     fontWeight: '600',
                     color: '#003061',
                     marginBottom: '0.5rem'
-                  }}>📅 Date de Fin</label>
+                  }}>📅 {t('workorder.end_date', 'Date de Fin')}</label>
                   <input
                     type="date"
                     name="dateFin"
@@ -334,7 +334,7 @@ export default function Bont() {
                   fontWeight: '600',
                   color: '#003061',
                   marginBottom: '0.5rem'
-                }}>🔧 Technicien</label>
+                }}>🔧 {t('workorder.technician', 'Technicien')}</label>
                 <select
                   name="technicienId"
                   value={bonTravail.technicienId}
@@ -368,7 +368,7 @@ export default function Bont() {
                   fontWeight: '600',
                   color: '#003061',
                   marginBottom: '0.5rem'
-                }}>📊 Statut</label>
+                }}>📊 {t('workorder.status', 'Statut')}</label>
                 <select
                   name="statut"
                   value={bonTravail.statut}
@@ -416,7 +416,7 @@ export default function Bont() {
                 fontWeight: '600',
                 color: '#003061',
                 marginBottom: '0.5rem'
-              }}>⚙️ Sélectionner les composants</label>
+              }}>⚙️ {t('workorder.select_components', 'Sélectionner les composants')}</label>
               <select
                 name="composants"
                 multiple

@@ -14,6 +14,8 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNotifications, setSelectedNotifications] = useState(new Set());
   const [usingRealData, setUsingRealData] = useState(false);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Types de notifications avec icônes et couleurs
   const notificationTypes = {
@@ -207,31 +209,59 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
   useEffect(() => {
     let filtered = [...notifications];
 
+    // Normaliser les données pour gérer les différences entre API et données simulées
+    filtered = filtered.map(n => ({
+      ...n,
+      // Assurer la compatibilité des champs
+      priority: n.priority || 'NORMAL',
+      isRead: n.isRead !== undefined ? n.isRead : n.read || false,
+      type: n.type || 'COMPONENT_ORDER',
+      project: n.project || n.projectName || null,
+      createdAt: n.createdAt || n.timestamp || new Date().toISOString()
+    }));
+
     if (filters.type !== 'all') {
       filtered = filtered.filter(n => n.type === filters.type);
     }
 
     if (filters.priority !== 'all') {
-      filtered = filtered.filter(n => n.priority === filters.priority);
+      filtered = filtered.filter(n => {
+        const priority = n.priority || 'NORMAL';
+        return priority === filters.priority;
+      });
     }
 
     if (filters.status === 'unread') {
-      filtered = filtered.filter(n => !n.isRead);
+      filtered = filtered.filter(n => {
+        const isRead = n.isRead !== undefined ? n.isRead : (n.read || false);
+        return !isRead;
+      });
     } else if (filters.status === 'read') {
-      filtered = filtered.filter(n => n.isRead);
+      filtered = filtered.filter(n => {
+        const isRead = n.isRead !== undefined ? n.isRead : (n.read || false);
+        return isRead;
+      });
     }
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(n => 
-        n.title.toLowerCase().includes(query) ||
-        n.message.toLowerCase().includes(query) ||
-        (n.project && n.project.toLowerCase().includes(query))
+        (n.title && n.title.toLowerCase().includes(query)) ||
+        (n.message && n.message.toLowerCase().includes(query)) ||
+        (n.project && n.project.toLowerCase().includes(query)) ||
+        (n.projectName && n.projectName.toLowerCase().includes(query))
       );
     }
 
-    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Tri par date de création (plus récent en premier)
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.timestamp || 0);
+      const dateB = new Date(b.createdAt || b.timestamp || 0);
+      return dateB - dateA;
+    });
+    
     setFilteredNotifications(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [notifications, filters, searchQuery]);
 
   const markAsRead = (notificationId) => {
@@ -247,6 +277,21 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
   const deleteSelected = () => {
     setNotifications(prev => prev.filter(n => !selectedNotifications.has(n.id)));
     setSelectedNotifications(new Set());
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentNotifications = filteredNotifications.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value));
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   const toggleSelection = (notificationId) => {
@@ -273,8 +318,39 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
   };
 
   return (
+    <>
+      {/* Background avec éléments décoratifs flottants */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(135deg, rgba(0,48,97,0.05) 0%, rgba(248,250,252,1) 100%)',
+        zIndex: -2
+      }}>
+        {/* Éléments décoratifs flottants */}
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              width: `${20 + i * 10}px`,
+              height: `${20 + i * 10}px`,
+              background: `linear-gradient(45deg, ${i % 2 === 0 ? '#00d4ff, #0078d4' : '#ff006e, #8338ec'})`,
+              borderRadius: '50%',
+              top: `${10 + i * 15}%`,
+              left: `${5 + i * 15}%`,
+              animation: `float ${3 + i * 0.5}s ease-in-out infinite`,
+              animationDelay: `${i * 0.3}s`,
+              filter: 'blur(1px)',
+              opacity: 0.6
+            }}
+          />
+        ))}
+      </div>
+
     <div style={{
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       minHeight: '100vh',
       padding: '20px'
     }}>
@@ -341,41 +417,44 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
             gap: '16px'
           }}>
             <div style={{
-              background: 'rgba(255,255,255,0.15)',
+              background: 'rgba(255,255,255,0.9)',
               borderRadius: '12px',
               padding: '16px',
-              textAlign: 'center'
+              textAlign: 'center',
+              border: '1px solid rgba(0,48,97,0.1)'
             }}>
-              <div style={{ fontSize: '24px', fontWeight: '700' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#003061' }}>
                 {notifications.length}
               </div>
-              <div style={{ fontSize: '14px', opacity: 0.8 }}>
+              <div style={{ fontSize: '14px', color: '#374151', fontWeight: '500' }}>
                 Total Notifications
               </div>
             </div>
             <div style={{
-              background: 'rgba(255,255,255,0.15)',
+              background: 'rgba(255,255,255,0.9)',
               borderRadius: '12px',
               padding: '16px',
-              textAlign: 'center'
+              textAlign: 'center',
+              border: '1px solid rgba(255,107,107,0.2)'
             }}>
-              <div style={{ fontSize: '24px', fontWeight: '700' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#dc2626' }}>
                 {notifications.filter(n => !n.isRead).length}
               </div>
-              <div style={{ fontSize: '14px', opacity: 0.8 }}>
+              <div style={{ fontSize: '14px', color: '#374151', fontWeight: '500' }}>
                 Non Lues
               </div>
             </div>
             <div style={{
-              background: 'rgba(255,255,255,0.15)',
+              background: 'rgba(255,255,255,0.9)',
               borderRadius: '12px',
               padding: '16px',
-              textAlign: 'center'
+              textAlign: 'center',
+              border: '1px solid rgba(245,158,11,0.2)'
             }}>
-              <div style={{ fontSize: '24px', fontWeight: '700' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#d97706' }}>
                 {notifications.filter(n => n.priority === 'CRITICAL' || n.priority === 'HIGH').length}
               </div>
-              <div style={{ fontSize: '14px', opacity: 0.8 }}>
+              <div style={{ fontSize: '14px', color: '#374151', fontWeight: '500' }}>
                 Priorité Élevée
               </div>
             </div>
@@ -563,19 +642,27 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
               flexDirection: 'column',
               gap: '12px'
             }}>
-              {filteredNotifications.map((notification) => {
-                const type = notificationTypes[notification.type] || { icon: '📄', label: 'Notification' };
-                const priority = priorityStyles[notification.priority] || priorityStyles.NORMAL;
+              {currentNotifications.map((notification) => {
+                // Normaliser les données pour assurer la compatibilité
+                const normalizedNotification = {
+                  ...notification,
+                  priority: notification.priority || 'NORMAL',
+                  isRead: notification.isRead !== undefined ? notification.isRead : (notification.read || false),
+                  type: notification.type || 'COMPONENT_ORDER'
+                };
+                
+                const type = notificationTypes[normalizedNotification.type] || { icon: '📄', label: 'Notification' };
+                const priority = priorityStyles[normalizedNotification.priority] || priorityStyles.NORMAL;
                 
                 return (
                   <div
                     key={notification.id}
                     style={{
-                      background: notification.isRead ? '#f9fafb' : 'white',
-                      border: `2px solid ${notification.isRead ? '#e5e7eb' : priority.border}`,
+                      background: normalizedNotification.isRead ? '#f9fafb' : 'white',
+                      border: `2px solid ${normalizedNotification.isRead ? '#e5e7eb' : priority.border}`,
                       borderRadius: '12px',
                       padding: '20px',
-                      boxShadow: notification.isRead ? 'none' : '0 4px 12px rgba(0,0,0,0.1)',
+                      boxShadow: normalizedNotification.isRead ? 'none' : '0 4px 12px rgba(0,0,0,0.1)',
                       transition: 'all 0.2s ease'
                     }}
                   >
@@ -616,7 +703,7 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
                             fontSize: '16px',
                             fontWeight: '600',
                             margin: 0,
-                            color: notification.isRead ? '#6b7280' : '#1f2937'
+                            color: normalizedNotification.isRead ? '#6b7280' : '#1f2937'
                           }}>
                             {notification.title}
                           </h4>
@@ -636,7 +723,7 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
                               fontWeight: '600',
                               textTransform: 'uppercase'
                             }}>
-                              {notification.priority}
+                              {normalizedNotification.priority}
                             </span>
                             
                             {/* Temps */}
@@ -651,7 +738,7 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
 
                         <p style={{
                           fontSize: '14px',
-                          color: notification.isRead ? '#9ca3af' : '#4b5563',
+                          color: normalizedNotification.isRead ? '#9ca3af' : '#4b5563',
                           margin: '0 0 12px 0',
                           lineHeight: '1.5'
                         }}>
@@ -696,7 +783,7 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
                           display: 'flex',
                           gap: '8px'
                         }}>
-                          {!notification.isRead && (
+                          {!normalizedNotification.isRead && (
                             <button
                               onClick={() => markAsRead(notification.id)}
                               style={{
@@ -736,8 +823,286 @@ const AdvancedNotificationCenter = ({ userId, userRole }) => {
             </div>
           )}
         </div>
+
+        {/* Section de pagination moderne et dynamique */}
+        <div style={{
+          background: "linear-gradient(145deg, #ffffff, #f8fafc)",
+          borderRadius: "1rem",
+          padding: "1.5rem 2rem",
+          marginTop: "1.5rem",
+          boxShadow: "0 10px 25px rgba(0, 48, 97, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)",
+          border: "1px solid rgba(0, 48, 97, 0.1)",
+          animation: "fadeInUp 0.8s ease-out",
+          position: "relative",
+          overflow: "hidden"
+        }}>
+          {/* Éléments décoratifs flottants */}
+          <div style={{
+            position: "absolute",
+            top: "-50px",
+            right: "-50px",
+            width: "100px",
+            height: "100px",
+            background: "rgba(0, 48, 97, 0.1)",
+            borderRadius: "50%",
+            animation: "float 6s ease-in-out infinite"
+          }}></div>
+          <div style={{
+            position: "absolute",
+            bottom: "-30px",
+            left: "-30px",
+            width: "60px",
+            height: "60px",
+            background: "rgba(0, 48, 97, 0.1)",
+            borderRadius: "50%",
+            animation: "float 4s ease-in-out infinite reverse"
+          }}></div>
+
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "1rem",
+            position: "relative",
+            zIndex: 1
+          }}>
+            {/* Section Items per page */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              background: "linear-gradient(135deg, #f0f9ff, #e0f2fe)",
+              padding: "0.75rem 1.25rem",
+              borderRadius: "0.75rem",
+              border: "1px solid rgba(3, 105, 161, 0.2)",
+              animation: "slideInLeft 0.6s ease-out"
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem"
+              }}>
+                <span style={{
+                  fontSize: "0.75rem",
+                  color: "#0369a1",
+                  fontWeight: "600",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em"
+                }}>📄 Items par page:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                  style={{
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.5rem",
+                    border: "2px solid #0369a1",
+                    background: "linear-gradient(135deg, #ffffff, #f8fafc)",
+                    color: "#0369a1",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    outline: "none",
+                    boxShadow: "0 2px 4px rgba(3, 105, 161, 0.1)"
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.transform = "scale(1.05)";
+                    e.target.style.boxShadow = "0 4px 12px rgba(3, 105, 161, 0.3)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.transform = "scale(1)";
+                    e.target.style.boxShadow = "0 2px 4px rgba(3, 105, 161, 0.1)";
+                  }}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Section informations de pagination */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              background: "linear-gradient(135deg, #ecfdf5, #f0fdf4)",
+              padding: "0.75rem 1.25rem",
+              borderRadius: "0.75rem",
+              border: "1px solid rgba(34, 197, 94, 0.2)",
+              animation: "fadeInUp 0.8s ease-out 0.2s both"
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem"
+              }}>
+                <span style={{
+                  fontSize: "0.75rem",
+                  color: "#16a34a",
+                  fontWeight: "600",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em"
+                }}>📊 Affichage:</span>
+                <div style={{
+                  background: "linear-gradient(135deg, #ffffff, #f8fafc)",
+                  padding: "0.375rem 0.75rem",
+                  borderRadius: "0.5rem",
+                  border: "1px solid rgba(34, 197, 94, 0.3)",
+                  fontSize: "0.875rem",
+                  fontWeight: "700",
+                  color: "#16a34a",
+                  fontFamily: "monospace",
+                  boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.05)"
+                }}>
+                  {indexOfFirstItem + 1} – {Math.min(indexOfLastItem, filteredNotifications.length)} sur {filteredNotifications.length}
+                </div>
+              </div>
+            </div>
+
+            {/* Boutons de navigation */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              animation: "slideInLeft 0.8s ease-out 0.4s both"
+            }}>
+              <button
+                style={{
+                  background: currentPage === 1 
+                    ? "linear-gradient(135deg, #9ca3af, #6b7280)" 
+                    : "#003061",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "0.75rem",
+                  padding: "0.75rem 1rem",
+                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                  transition: "all 0.3s ease",
+                  boxShadow: currentPage === 1 
+                    ? "0 2px 4px rgba(156, 163, 175, 0.3)" 
+                    : "0 4px 12px rgba(0, 48, 97, 0.3)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{ height: "1.25rem", width: "1.25rem" }}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span style={{
+                  marginLeft: "0.5rem",
+                  fontSize: "0.875rem",
+                  fontWeight: "600"
+                }}>Précédent</span>
+              </button>
+
+              {/* Indicateur de page actuelle */}
+              <div style={{
+                background: "linear-gradient(135deg, #fef3c7, #fef9e7)",
+                border: "2px solid #f59e0b",
+                borderRadius: "0.75rem",
+                padding: "0.75rem 1.25rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                animation: "pulse 2s infinite",
+                boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)"
+              }}>
+                <span style={{
+                  fontSize: "0.75rem",
+                  color: "#d97706",
+                  fontWeight: "600",
+                  textTransform: "uppercase"
+                }}>Page</span>
+                <span style={{
+                  fontSize: "1rem",
+                  fontWeight: "700",
+                  color: "#d97706",
+                  fontFamily: "monospace"
+                }}>{currentPage}</span>
+                <span style={{
+                  fontSize: "0.75rem",
+                  color: "#d97706",
+                  fontWeight: "600"
+                }}>/ {totalPages}</span>
+              </div>
+
+              <button
+                style={{
+                  background: currentPage === totalPages 
+                    ? "linear-gradient(135deg, #9ca3af, #6b7280)" 
+                    : "#003061",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "0.75rem",
+                  padding: "0.75rem 1rem",
+                  cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                  transition: "all 0.3s ease",
+                  boxShadow: currentPage === totalPages 
+                    ? "0 2px 4px rgba(156, 163, 175, 0.3)" 
+                    : "0 4px 12px rgba(0, 48, 97, 0.3)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <span style={{
+                  marginRight: "0.5rem",
+                  fontSize: "0.875rem",
+                  fontWeight: "600"
+                }}>Suivant</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{ height: "1.25rem", width: "1.25rem" }}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    {/* Animations CSS */}
+    <style jsx global>{`
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0px) rotate(0deg);
+        }
+        33% {
+          transform: translateY(-20px) rotate(120deg);
+        }
+        66% {
+          transform: translateY(10px) rotate(240deg);
+        }
+      }
+    `}</style>
+    </>
   );
 };
 

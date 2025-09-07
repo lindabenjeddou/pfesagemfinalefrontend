@@ -36,15 +36,15 @@ function AddIntervention() {
 
   const validateForm = () => {
     if (!demandeurId) {
-      setMessage("⚠️ Veuillez sélectionner un demandeur.");
+      setMessage(t('intervention.error.select_requester', "⚠️ Veuillez sélectionner un demandeur."));
       return false;
     }
     if (!description) {
-      setMessage("⚠️ Veuillez entrer une description.");
+      setMessage(t('intervention.error.enter_description', "⚠️ Veuillez entrer une description."));
       return false;
     }
     if (type === "CURATIVE" && !panne) {
-      setMessage("⚠️ Veuillez entrer une panne pour l'intervention curative.");
+      setMessage(t('intervention.error.enter_failure', "⚠️ Veuillez entrer une panne pour l'intervention curative."));
       return false;
     }
     if (type === "PREVENTIVE" && (!frequence || !prochainRDV)) {
@@ -75,7 +75,7 @@ function AddIntervention() {
         : { ...baseData, frequence, prochainRDV, type_demande: "PREVENTIVE" };
 
     try {
-      const response = await fetch(`http://localhost:8089/PI/demandes/create`, {
+      const response = await fetch(`http://localhost:8089/PI/PI/demandes/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -359,7 +359,7 @@ function AddIntervention() {
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}>
-                  🔧 Type d'Intervention
+                  🔧 {t('intervention.type_title', 'Type d\'Intervention')}
                 </h3>
 
                 <div style={{
@@ -398,7 +398,7 @@ function AddIntervention() {
                         color: type === typeOption ? '#1e40af' : '#374151',
                         marginBottom: '0.5rem'
                       }}>
-                        {typeOption === 'CURATIVE' ? 'Curative' : 'Préventive'}
+                        {typeOption === 'CURATIVE' ? t('intervention.type_curative', 'Curative') : t('intervention.type_preventive', 'Préventive')}
                       </h4>
                       <p style={{
                         fontSize: '0.875rem',
@@ -406,8 +406,8 @@ function AddIntervention() {
                         margin: 0
                       }}>
                         {typeOption === 'CURATIVE' 
-                          ? 'Réparation suite à une panne' 
-                          : 'Maintenance programmée'}
+                          ? t('intervention.type_curative_desc', 'Réparation suite à une panne') 
+                          : t('intervention.type_preventive_desc', 'Maintenance programmée')}
                       </p>
                     </div>
                   ))}
@@ -425,7 +425,7 @@ function AddIntervention() {
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}>
-                  📋 Informations Générales
+                  📋 {t('intervention.general_info', 'Informations Générales')}
                 </h3>
 
                 <div style={{
@@ -443,7 +443,7 @@ function AddIntervention() {
                       color: '#374151',
                       marginBottom: '0.75rem'
                     }}>
-                      👤 Demandeur *
+                      👤 {t('intervention.requester', 'Demandeur')} *
                     </label>
                     <select
                       value={demandeurId}
@@ -460,7 +460,7 @@ function AddIntervention() {
                         transition: 'all 0.3s ease'
                       }}
                     >
-                      <option value="">Sélectionner un demandeur</option>
+                      <option value="">{t('intervention.select_requester', 'Sélectionner un demandeur')}</option>
                       {demandeurs.map((demandeur) => (
                         <option key={demandeur.id} value={demandeur.id}>
                           {demandeur.firstName} {demandeur.lastName} - {demandeur.role}
@@ -478,7 +478,7 @@ function AddIntervention() {
                       color: '#374151',
                       marginBottom: '0.75rem'
                     }}>
-                      🚨 Priorité
+                      🚨 {t('interventions.priority_field', 'Priorité')}
                     </label>
                     <div style={{
                       display: 'grid',
@@ -486,9 +486,9 @@ function AddIntervention() {
                       gap: '0.5rem'
                     }}>
                       {[
-                        { value: 'BASSE', label: 'Basse', color: '#10b981', emoji: '🟢' },
-                        { value: 'MOYENNE', label: 'Moyenne', color: '#f59e0b', emoji: '🟡' },
-                        { value: 'HAUTE', label: 'Haute', color: '#ef4444', emoji: '🔴' }
+                        { value: 'BASSE', label: t('interventions.priority_low', 'Basse'), color: '#10b981', emoji: '🟢' },
+                        { value: 'MOYENNE', label: t('interventions.priority_normal', 'Moyenne'), color: '#f59e0b', emoji: '🟡' },
+                        { value: 'HAUTE', label: t('interventions.priority_high', 'Haute'), color: '#ef4444', emoji: '🔴' }
                       ].map((priorityOption) => (
                         <div
                           key={priorityOption.value}
@@ -530,12 +530,12 @@ function AddIntervention() {
                     color: '#374151',
                     marginBottom: '0.75rem'
                   }}>
-                    📄 Description *
+                    📄 {t('interventions.description_field', 'Description')} *
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Décrivez en détail l'intervention nécessaire..."
+                    placeholder={t('interventions.description_placeholder', "Décrivez en détail l'intervention nécessaire...")}
                     required
                     rows={4}
                     style={{
@@ -565,7 +565,7 @@ function AddIntervention() {
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}>
-                  {type === 'CURATIVE' ? '⚠️ Détails de la Panne' : '🔄 Détails de la Maintenance'}
+                  {type === 'CURATIVE' ? `⚠️ ${t('intervention.failure_details', 'Détails de la Panne')}` : `🔄 ${t('intervention.maintenance_details', 'Détails de la Maintenance')}`}
                 </h3>
 
                 {type === "CURATIVE" ? (
@@ -578,12 +578,12 @@ function AddIntervention() {
                         color: '#374151',
                         marginBottom: '0.75rem'
                       }}>
-                        ⚠️ Description de la Panne *
+                        ⚠️ {t('intervention.failure', 'Description de la Panne')} *
                       </label>
                       <textarea
                         value={panne}
                         onChange={(e) => setPanne(e.target.value)}
-                        placeholder="Décrivez la panne observée..."
+                        placeholder={t('intervention.failure.placeholder', 'Décrivez la panne observée...')}
                         required
                         rows={3}
                         style={{
@@ -627,7 +627,7 @@ function AddIntervention() {
                         color: '#92400e',
                         cursor: 'pointer'
                       }}>
-                        🚨 Intervention urgente
+                        🚨 {t('intervention.urgent', 'Intervention urgente')}
                       </label>
                     </div>
                   </>
@@ -645,7 +645,7 @@ function AddIntervention() {
                         color: '#374151',
                         marginBottom: '0.75rem'
                       }}>
-                        🔄 Fréquence *
+                        🔄 {t('intervention.frequency', 'Fréquence')} *
                       </label>
                       <select
                         value={frequence}
@@ -662,12 +662,12 @@ function AddIntervention() {
                           transition: 'all 0.3s ease'
                         }}
                       >
-                        <option value="">Sélectionner</option>
-                        <option value="Hebdomadaire">Hebdomadaire</option>
-                        <option value="Mensuelle">Mensuelle</option>
-                        <option value="Trimestrielle">Trimestrielle</option>
-                        <option value="Semestrielle">Semestrielle</option>
-                        <option value="Annuelle">Annuelle</option>
+                        <option value="">{t('intervention.frequency.select', 'Sélectionner')}</option>
+                        <option value="Hebdomadaire">{t('intervention.frequency.weekly', 'Hebdomadaire')}</option>
+                        <option value="Mensuelle">{t('intervention.frequency.monthly', 'Mensuelle')}</option>
+                        <option value="Trimestrielle">{t('intervention.frequency.quarterly', 'Trimestrielle')}</option>
+                        <option value="Semestrielle">{t('intervention.frequency.biannual', 'Semestrielle')}</option>
+                        <option value="Annuelle">{t('intervention.frequency.annual', 'Annuelle')}</option>
                       </select>
                     </div>
 
@@ -679,7 +679,7 @@ function AddIntervention() {
                         color: '#374151',
                         marginBottom: '0.75rem'
                       }}>
-                        📅 Prochain RDV *
+                        📅 {t('intervention.next_appointment', 'Prochain RDV')} *
                       </label>
                       <input
                         type="date"
@@ -753,12 +753,12 @@ function AddIntervention() {
                         borderRadius: '50%',
                         animation: 'spin 1s linear infinite'
                       }} />
-                      Création en cours...
+                      {t('intervention.creating', 'Création en cours...')}
                     </>
                   ) : (
                     <>
                       <span style={{ fontSize: '1.2rem' }}>📋</span>
-                      Créer l'Intervention
+                      {t('intervention.create_button', 'Créer l\'Intervention')}
                     </>
                   )}
                 </button>

@@ -1,95 +1,931 @@
 /*eslint-disable*/
 import React from "react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { useSecurity } from "../../contexts/SecurityContext";
 // components
 
 import IndexDropdown from "components/Dropdowns/IndexDropdown.js";
 
 export default function Navbar(props) {
   const [navbarOpen, setNavbarOpen] = React.useState(false);
+  const [scrolled, setScrolled] = React.useState(false);
+  const [languageDropdownOpen, setLanguageDropdownOpen] = React.useState(false);
+  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const [currentUser, setCurrentUser] = React.useState(null);
+  const { t, currentLanguage, changeLanguage, getAvailableLanguages } = useLanguage();
+  const { user, isAuthenticated, logout } = useSecurity();
+
+  // Récupérer les données utilisateur avec fallback immédiat
+  React.useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        console.log('🔍 IndexNavbar - Utilisateur du SecurityContext:', user);
+        const token = localStorage.getItem('token');
+        console.log('🔍 IndexNavbar - Token:', token ? 'Présent' : 'Absent');
+        
+        // Données de fallback par défaut améliorées (exactement comme Profile.js)
+        const defaultFallbackData = {
+          firstName: user?.firstName || 'Prénom',
+          lastName: user?.lastName || 'Nom',
+          email: user?.email || 'email@exemple.com',
+          role: user?.role || 'UTILISATEUR',
+          phoneNumber: user?.phoneNumber || '+216 XX XXX XXX',
+          adress: user?.adress || 'Adresse'
+        };
+        
+        // Définir les données de fallback immédiatement pour éviter l'affichage vide
+        setCurrentUser(defaultFallbackData);
+        
+        const response = await fetch('http://localhost:8089/PI/user/all', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('🔍 IndexNavbar - Réponse API status:', response.status);
+        
+        if (response.ok) {
+          const users = await response.json();
+          console.log('🔍 IndexNavbar - Tous les utilisateurs récupérés:', users);
+          console.log('🔍 IndexNavbar - Recherche utilisateur avec ID:', user?.userId);
+          
+          const currentUser = users.find(u => u.id === user?.userId);
+          console.log('🔍 IndexNavbar - Utilisateur trouvé:', currentUser);
+          
+          if (currentUser) {
+            console.log('✅ IndexNavbar - Utilisation des données API');
+            setCurrentUser(currentUser);
+          } else {
+            console.log('⚠️ IndexNavbar - Utilisateur non trouvé, conservation des données de fallback');
+          }
+        } else {
+          console.error('❌ IndexNavbar - Erreur API:', response.status, response.statusText);
+          console.log('⚠️ IndexNavbar - Conservation des données de fallback par défaut');
+        }
+      } catch (error) {
+        console.error('❌ IndexNavbar - Erreur fetch:', error);
+        console.log('⚠️ IndexNavbar - Conservation des données de fallback par défaut');
+      }
+    };
+
+    fetchUserDetails();
+  }, [user, isAuthenticated]);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 20;
+      setScrolled(isScrolled);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
-      <nav className="top-0 fixed z-50 w-full flex flex-wrap items-center justify-between px-2 py-3 navbar-expand-lg bg-white shadow">
-        <div className="container px-4 mx-auto flex flex-wrap items-center justify-between">
-          <div className="w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
+      <style jsx global>{`
+        @keyframes slideInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        
+        @keyframes shimmer {
+          0% { background-position: -200px 0; }
+          100% { background-position: calc(200px + 100%) 0; }
+        }
+        
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(0,120,212,0.3); }
+          50% { box-shadow: 0 0 30px rgba(0,120,212,0.5); }
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+      `}</style>
+      
+      <nav 
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          background: scrolled 
+            ? `linear-gradient(135deg, rgba(0,26,61,0.95) 0%, rgba(0,48,97,0.92) 50%, rgba(0,120,212,0.95) 100%)`
+            : "rgba(0,48,97,0.1)",
+          backdropFilter: scrolled ? "blur(20px)" : "blur(5px)",
+          borderBottom: scrolled 
+            ? "1px solid rgba(255,255,255,0.1)" 
+            : "1px solid rgba(255,255,255,0.05)",
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          animation: "slideInDown 1s ease",
+          boxShadow: scrolled 
+            ? "0 8px 32px rgba(0,48,97,0.3), 0 4px 16px rgba(0,120,212,0.2)"
+            : "0 4px 16px rgba(0,48,97,0.1)",
+        }}>
+        <div 
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            padding: "0 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            height: "96px",
+            position: "relative",
+          }}
+        >
+          {/* Floating Particles */}
+          <div style={{
+            position: 'absolute',
+            top: '15px',
+            left: '30px',
+            width: '8px',
+            height: '8px',
+            background: 'linear-gradient(135deg, #40a9ff 0%, #0078d4 100%)',
+            borderRadius: '50%',
+            opacity: 0.7,
+            animation: 'float 4s ease-in-out infinite',
+            filter: 'blur(0.5px)',
+            boxShadow: '0 0 15px rgba(64,169,255,0.4)'
+          }}></div>
+          <div style={{
+            position: 'absolute',
+            top: '65px',
+            left: '80px',
+            width: '6px',
+            height: '6px',
+            background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)',
+            borderRadius: '50%',
+            opacity: 0.6,
+            animation: 'float 4s ease-in-out infinite 1.5s',
+            filter: 'blur(0.3px)',
+            boxShadow: '0 0 12px rgba(82,196,26,0.4)'
+          }}></div>
+          <div style={{
+            position: 'absolute',
+            top: '35px',
+            right: '120px',
+            width: '7px',
+            height: '7px',
+            background: 'linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%)',
+            borderRadius: '50%',
+            opacity: 0.5,
+            animation: 'float 4s ease-in-out infinite 3s',
+            filter: 'blur(0.4px)',
+            boxShadow: '0 0 14px rgba(255,77,79,0.4)'
+          }}></div>
+
+          {/* Logo Section */}
+          <div 
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              animation: "fadeIn 1s ease 0.2s both",
+              position: "relative",
+              zIndex: 2
+            }}
+          >
+            <div
+              style={{
+                width: "72px",
+                height: "72px",
+                background: "linear-gradient(135deg, #003061, #0078d4)",
+                borderRadius: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 8px 32px rgba(0,48,97,0.4)",
+                animation: "pulse 3s ease-in-out infinite",
+                position: "relative",
+                overflow: "hidden",
+                border: "2px solid rgba(255,255,255,0.1)"
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: "-100%",
+                  width: "100%",
+                  height: "100%",
+                  background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
+                  animation: "shimmer 3s infinite",
+                }}
+              />
+              <span style={{
+                fontSize: "32px",
+                fontWeight: "800",
+                color: "white",
+                filter: "drop-shadow(0 0 12px rgba(255,255,255,0.5))",
+                animation: "glow 3s ease-in-out infinite"
+              }}>
+                🏢
+              </span>
+            </div>
+            
             <Link
               to="/"
-              className="text-blueGray-700 text-sm font-bold leading-relaxed inline-block mr-4 py-2 whitespace-nowrap uppercase"
+              style={{
+                fontSize: "28px",
+                fontWeight: "800",
+                background: "linear-gradient(135deg, #ffffff, #e0f2ff)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                textDecoration: "none",
+                letterSpacing: "0.5px",
+                textShadow: "0 0 30px rgba(255,255,255,0.1)"
+              }}
             >
-              Notus React
+              Sagemcom Maintenance
             </Link>
-            <button
-              className="cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
-              type="button"
-              onClick={() => setNavbarOpen(!navbarOpen)}
-            >
-              <i className="fas fa-bars"></i>
-            </button>
           </div>
-          <div
-            className={
-              "lg:flex flex-grow items-center bg-white lg:bg-opacity-0 lg:shadow-none" +
-              (navbarOpen ? " block" : " hidden")
-            }
-            id="example-navbar-warning"
+
+          {/* Desktop Navigation */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "32px",
+            animation: 'fadeIn 1s ease-out 0.4s both',
+            position: "relative",
+            zIndex: 2
+          }} className="hidden lg:flex">
+
+            {/* Language Selector */}
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  borderRadius: "12px",
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "linear-gradient(135deg, rgba(0,120,212,0.3) 0%, rgba(0,48,97,0.2) 100%)";
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 8px 16px rgba(0,120,212,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)";
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "none";
+                }}
+              >
+                <span style={{ fontSize: "16px" }}>
+                  {currentLanguage === 'fr' ? '🇫🇷' : currentLanguage === 'en' ? '🇺🇸' : '🇸🇦'}
+                </span>
+                <span>{currentLanguage === 'fr' ? 'FR' : currentLanguage === 'en' ? 'EN' : 'AR'}</span>
+                <i className={`fas fa-chevron-${languageDropdownOpen ? 'up' : 'down'}`} style={{ fontSize: "10px" }}></i>
+              </button>
+
+              {/* Language Dropdown */}
+              {languageDropdownOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    right: "0",
+                    marginTop: "8px",
+                    minWidth: "160px",
+                    background: `linear-gradient(135deg, 
+                      rgba(0,48,97,0.95) 0%, 
+                      rgba(0,60,120,0.92) 50%, 
+                      rgba(0,120,212,0.95) 100%),
+                      linear-gradient(45deg, rgba(255,255,255,0.05) 0%, transparent 100%)`,
+                    backdropFilter: "blur(25px)",
+                    borderRadius: "16px",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    boxShadow: "0 20px 40px rgba(0,48,97,0.4)",
+                    padding: "8px",
+                    zIndex: 1000,
+                    animation: "fadeIn 0.2s ease-out",
+                  }}
+                >
+                  {getAvailableLanguages().map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        changeLanguage(lang.code);
+                        setLanguageDropdownOpen(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "12px 16px",
+                        borderRadius: "12px",
+                        background: currentLanguage === lang.code 
+                          ? "linear-gradient(135deg, rgba(0,120,212,0.3) 0%, rgba(0,48,97,0.2) 100%)"
+                          : "transparent",
+                        border: "none",
+                        color: "rgba(255,255,255,0.9)",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        textAlign: "left",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (currentLanguage !== lang.code) {
+                          e.target.style.background = "rgba(255,255,255,0.05)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (currentLanguage !== lang.code) {
+                          e.target.style.background = "transparent";
+                        }
+                      }}
+                    >
+                      <span style={{ fontSize: "16px" }}>{lang.flag}</span>
+                      <span>{lang.name}</span>
+                      {currentLanguage === lang.code && (
+                        <i className="fas fa-check" style={{ marginLeft: "auto", fontSize: "12px", color: "#40a9ff" }}></i>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Auth Buttons / User Info */}
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              {currentUser ? (
+                /* User Profile Section */
+                <div style={{ position: "relative" }}>
+                  <div
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px 20px',
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                      backdropFilter: 'blur(15px)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 8px 32px rgba(0,120,212,0.15)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(0,120,212,0.1) 100%)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,120,212,0.25)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,120,212,0.15)';
+                    }}
+                  >
+                    {/* User Info */}
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        color: 'white',
+                        fontFamily: '"Inter", sans-serif',
+                        letterSpacing: '0.3px'
+                      }}>
+                        {currentUser.firstname || currentUser.firstName || currentUser.name} {currentUser.lastname || currentUser.lastName || ''}
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: 'rgba(255,255,255,0.8)',
+                        fontWeight: '500',
+                        marginTop: '2px'
+                      }}>
+                        {currentUser.role || 'Utilisateur'}
+                      </div>
+                    </div>
+                    
+                    {/* Avatar */}
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      background: 'linear-gradient(135deg, #0078d4 0%, #003061 100%)',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      boxShadow: '0 4px 16px rgba(0,120,212,0.3)'
+                    }}>
+                      <span style={{
+                        fontSize: '18px',
+                        color: 'white'
+                      }}>
+                        {currentUser?.role === 'ADMIN' && '👑'}
+                        {currentUser?.role === 'MAGASINIER' && '📦'}
+                        {currentUser?.role === 'TECHNICIEN' && '🔧'}
+                        {currentUser?.role === 'MANAGER' && '📊'}
+                        {currentUser?.role === 'SUPERVISEUR' && '👥'}
+                        {!currentUser?.role && '👤'}
+                      </span>
+                    </div>
+                    
+                    {/* Dropdown Arrow */}
+                    <i className="fas fa-chevron-down" style={{
+                      fontSize: '10px',
+                      color: 'rgba(255,255,255,0.8)',
+                      transition: 'transform 0.3s ease',
+                      transform: userMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                    }}></i>
+                  </div>
+
+                  {/* User Dropdown Menu */}
+                  {userMenuOpen && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      marginTop: '8px',
+                      minWidth: '280px',
+                      background: 'linear-gradient(135deg, rgba(0,48,97,0.95) 0%, rgba(0,120,212,0.92) 100%)',
+                      backdropFilter: 'blur(25px)',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      boxShadow: '0 20px 40px rgba(0,48,97,0.4)',
+                      padding: '0',
+                      zIndex: 1000,
+                      animation: 'fadeIn 0.2s ease-out',
+                      overflow: 'hidden'
+                    }}>
+                      {/* User Info Header */}
+                      <div style={{
+                        padding: '20px 20px 16px 20px',
+                        borderBottom: '1px solid rgba(255,255,255,0.1)',
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)'
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          marginBottom: '12px'
+                        }}>
+                          {/* Avatar */}
+                          <div style={{
+                            width: '48px',
+                            height: '48px',
+                            background: 'linear-gradient(135deg, #0078d4 0%, #003061 100%)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '2px solid rgba(255,255,255,0.3)',
+                            boxShadow: '0 4px 16px rgba(0,120,212,0.3)'
+                          }}>
+                            <i className="fas fa-user" style={{
+                              fontSize: '18px',
+                              color: 'white'
+                            }}></i>
+                          </div>
+                          
+                          {/* User Details */}
+                          <div style={{ flex: 1 }}>
+                            <div style={{
+                              fontSize: '16px',
+                              fontWeight: '700',
+                              color: 'white',
+                              fontFamily: '"Inter", sans-serif',
+                              letterSpacing: '0.3px',
+                              marginBottom: '4px'
+                            }}>
+                              {currentUser.firstName || currentUser.name} {currentUser.lastName || ''}
+                            </div>
+                            <div style={{
+                              fontSize: '12px',
+                              color: 'rgba(255,255,255,0.8)',
+                              fontWeight: '500',
+                              marginBottom: '6px',
+                              padding: '2px 8px',
+                              background: 'rgba(255,255,255,0.1)',
+                              borderRadius: '12px',
+                              display: 'inline-block'
+                            }}>
+                              👤 {currentUser.role || 'Utilisateur'}
+                            </div>
+                            <div style={{
+                              fontSize: '13px',
+                              color: 'rgba(255,255,255,0.7)',
+                              fontWeight: '400',
+                              fontFamily: '"Inter", sans-serif'
+                            }}>
+                              📧 {currentUser.email || 'email@sagemcom.com'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Menu Items */}
+                      <div style={{ padding: '8px' }}>
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setUserMenuOpen(false)}
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'rgba(255,255,255,0.9)',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            textDecoration: 'none',
+                            marginBottom: '4px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                          }}
+                        >
+                          <i className="fas fa-tachometer-alt"></i>
+                          Tableau de bord
+                        </Link>
+
+                        <button
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            // Navigation vers profil
+                          }}
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'rgba(255,255,255,0.9)',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            marginBottom: '4px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                          }}
+                        >
+                          <i className="fas fa-user"></i>
+                          Mon Profil
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            // Navigation vers paramètres
+                          }}
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'rgba(255,255,255,0.9)',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            marginBottom: '8px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                          }}
+                        >
+                          <i className="fas fa-cog"></i>
+                          Paramètres
+                        </button>
+
+                        {/* Separator */}
+                        <div style={{
+                          height: '1px',
+                          background: 'rgba(255,255,255,0.1)',
+                          margin: '8px 0'
+                        }}></div>
+                        
+                        <button
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            // Nettoyer toutes les données utilisateur
+                            localStorage.removeItem('user');
+                            localStorage.removeItem('sagemcom_user');
+                            localStorage.removeItem('currentUser');
+                            localStorage.removeItem('token');
+                            setCurrentUser(null);
+                            if (logout) logout();
+                          }}
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'rgba(255,107,107,0.9)',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,107,107,0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                          }}
+                        >
+                          <i className="fas fa-sign-out-alt"></i>
+                          Déconnexion
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Login/Register Buttons for non-authenticated users */
+                <>
+                  <Link
+                    to="/auth/login"
+                    style={{
+                      color: 'rgba(255,255,255,0.9)',
+                      textDecoration: 'none',
+                      padding: '12px 24px',
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = 'linear-gradient(135deg, rgba(0,120,212,0.3) 0%, rgba(0,48,97,0.2) 100%)';
+                      e.target.style.transform = 'translateY(-2px)';
+                      e.target.style.boxShadow = '0 12px 24px rgba(0,120,212,0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)';
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  >
+                    <i className="fas fa-sign-in-alt"></i>
+                    {t('auth.login')}
+                  </Link>
+                  
+                  <Link
+                    to="/auth/register"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '14px 28px',
+                      background: 'linear-gradient(135deg, #0078d4 0%, #003061 100%)',
+                      color: 'white',
+                      textDecoration: 'none',
+                      borderRadius: '16px',
+                      fontSize: '16px',
+                      fontWeight: '700',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      boxShadow: '0 8px 32px rgba(0,120,212,0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'translateY(-3px) scale(1.05)';
+                      e.target.style.boxShadow = '0 16px 40px rgba(0,120,212,0.4)';
+                      e.target.style.background = 'linear-gradient(135deg, #003061 0%, #0078d4 100%)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateY(0) scale(1)';
+                      e.target.style.boxShadow = '0 8px 32px rgba(0,120,212,0.3)';
+                      e.target.style.background = 'linear-gradient(135deg, #0078d4 0%, #003061 100%)';
+                    }}
+                  >
+                    <span style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: '-100%',
+                      width: '100%',
+                      height: '100%',
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                      animation: 'shimmer 2s infinite'
+                    }}></span>
+                    <i className="fas fa-user-plus"></i>
+                    {t('auth.register')}
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            style={{
+              display: "none",
+              width: "48px",
+              height: "48px",
+              background: "rgba(255,255,255,0.1)",
+              backdropFilter: "blur(10px)",
+              border: "2px solid rgba(255,255,255,0.2)",
+              borderRadius: "12px",
+              color: "white",
+              fontSize: "20px",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            className="flex lg:hidden"
+            onClick={() => setNavbarOpen(!navbarOpen)}
+            onMouseEnter={(e) => {
+              e.target.style.background = "rgba(255,255,255,0.2)";
+              e.target.style.transform = "scale(1.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = "rgba(255,255,255,0.1)";
+              e.target.style.transform = "scale(1)";
+            }}
           >
-            <ul className="flex flex-col lg:flex-row list-none mr-auto">
-              <li className="flex items-center">
-                <a
-                  className="hover:text-blueGray-500 text-blueGray-700 px-3 py-4 lg:py-2 flex items-center text-xs uppercase font-bold"
-                  href="https://www.creative-tim.com/learning-lab/tailwind/react/overview/notus?ref=nr-index-navbar"
-                >
-                  <i className="text-blueGray-400 far fa-file-alt text-lg leading-lg mr-2" />{" "}
-                  Docs
-                </a>
-              </li>
-            </ul>
-            <ul className="flex flex-col lg:flex-row list-none lg:ml-auto">
-              <li className="flex items-center">
-                <IndexDropdown />
-              </li>
-              <li className="flex items-center">
-                <a
-                  className="hover:text-blueGray-500 text-blueGray-700 px-3 py-4 lg:py-2 flex items-center text-xs uppercase font-bold"
-                  href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fdemos.creative-tim.com%2Fnotus-react%2F%23%2F"
-                  target="_blank"
-                >
-                  <i className="text-blueGray-400 fab fa-facebook text-lg leading-lg " />
-                  <span className="lg:hidden inline-block ml-2">Share</span>
-                </a>
-              </li>
+            <span style={{ fontSize: "24px" }}>☰</span>
+          </button>
+        </div>
 
-              <li className="flex items-center">
-                <a
-                  className="hover:text-blueGray-500 text-blueGray-700 px-3 py-4 lg:py-2 flex items-center text-xs uppercase font-bold"
-                  href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fdemos.creative-tim.com%2Fnotus-react%2F%23%2F&text=Start%20your%20development%20with%20a%20Free%20Tailwind%20CSS%20and%20React%20UI%20Kit%20and%20Admin.%20Let%20Notus%20React%20amaze%20you%20with%20its%20cool%20features%20and%20build%20tools%20and%20get%20your%20project%20to%20a%20whole%20new%20level.%20"
-                  target="_blank"
-                >
-                  <i className="text-blueGray-400 fab fa-twitter text-lg leading-lg " />
-                  <span className="lg:hidden inline-block ml-2">Tweet</span>
-                </a>
-              </li>
+        {/* Mobile Menu */}
+        <div
+          style={{
+            display: navbarOpen ? "block" : "none",
+            background: `
+              linear-gradient(135deg, rgba(0,26,61,0.98) 0%, rgba(0,48,97,0.95) 50%, rgba(0,120,212,0.98) 100%),
+              linear-gradient(45deg, rgba(255,255,255,0.05) 0%, transparent 100%)
+            `,
+            backdropFilter: "blur(25px)",
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            padding: "24px",
+            boxShadow: "0 8px 32px rgba(0,48,97,0.4)",
+          }}
+          className="lg:hidden"
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            
+            {/* Language Selector Mobile */}
+            <div style={{ 
+              padding: "16px 20px",
+              borderBottom: "1px solid rgba(255,255,255,0.1)",
+              marginBottom: "16px"
+            }}>
+              <div style={{ 
+                color: "rgba(255,255,255,0.7)", 
+                fontSize: "12px", 
+                fontWeight: "600", 
+                marginBottom: "12px",
+                textTransform: "uppercase",
+                letterSpacing: "1px"
+              }}>
+                {t('language.select')}
+              </div>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {getAvailableLanguages().map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => {
+                      changeLanguage(lang.code);
+                      setNavbarOpen(false);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      background: currentLanguage === lang.code 
+                        ? "linear-gradient(135deg, rgba(0,120,212,0.3) 0%, rgba(0,48,97,0.2) 100%)"
+                        : "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.9)",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <span style={{ fontSize: "14px" }}>{lang.flag}</span>
+                    <span>{lang.name}</span>
+                    {currentLanguage === lang.code && (
+                      <i className="fas fa-check" style={{ fontSize: "10px", color: "#40a9ff" }}></i>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-              <li className="flex items-center">
-                <a
-                  className="hover:text-blueGray-500 text-blueGray-700 px-3 py-4 lg:py-2 flex items-center text-xs uppercase font-bold"
-                  href="https://github.com/creativetimofficial/notus-react?ref=nr-index-navbar"
-                  target="_blank"
-                >
-                  <i className="text-blueGray-400 fab fa-github text-lg leading-lg " />
-                  <span className="lg:hidden inline-block ml-2">Star</span>
-                </a>
-              </li>
-
-              <li className="flex items-center">
-                <button
-                  className="bg-lightBlue-500 text-white active:bg-lightBlue-600 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg outline-none focus:outline-none lg:mr-1 lg:mb-0 ml-3 mb-3 ease-linear transition-all duration-150"
-                  type="button"
-                >
-                  <i className="fas fa-arrow-alt-circle-down"></i> Download
-                </button>
-              </li>
-            </ul>
+            <Link
+              to="/auth/login"
+              style={{
+                padding: "16px 20px",
+                color: "rgba(255,255,255,0.9)",
+                textDecoration: "none",
+                fontSize: "16px",
+                fontWeight: "600",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                transition: "all 0.3s ease",
+                textAlign: "center",
+              }}
+              onClick={() => setNavbarOpen(false)}
+            >
+              <i className="fas fa-sign-in-alt mr-2"></i>
+              {t('auth.login')}
+            </Link>
+            
+            <Link
+              to="/auth/register"
+              style={{
+                padding: "16px 20px",
+                color: "#ffffff",
+                textDecoration: "none",
+                fontSize: "16px",
+                fontWeight: "600",
+                borderRadius: "12px",
+                background: "linear-gradient(135deg, #0078d4 0%, #003061 100%)",
+                border: "none",
+                transition: "all 0.3s ease",
+                textAlign: "center",
+                position: "relative",
+                overflow: "hidden",
+              }}
+              onClick={() => setNavbarOpen(false)}
+            >
+              <span style={{
+                position: 'absolute',
+                top: 0,
+                left: '-100%',
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                animation: 'shimmer 2s infinite'
+              }}></span>
+              <i className="fas fa-user-plus mr-2"></i>
+              {t('auth.register')}
+            </Link>
           </div>
         </div>
       </nav>

@@ -30,7 +30,8 @@ import EnhancedAnalyticsDashboard from "components/Analytics/EnhancedAnalyticsDa
 import AdvancedAnalyticsDashboard from "components/Analytics/AdvancedAnalyticsDashboard.js";
 import AdvancedNotificationCenter from "components/Notifications/AdvancedNotificationCenter.js";
 import NotificationSystemTest from "components/Testing/NotificationSystemTest.js";
-import ComponentOrderValidation from "components/ComponentOrders/ComponentOrderValidationModern.js";
+import ComponentOrderValidation from "components/ComponentOrders/ComponentOrderValidation.js";
+import ComponentOrderValidationModern from "components/ComponentOrders/ComponentOrderValidationModern.js";
 import { ToastProvider } from "components/Notifications/ToastNotificationSystem.js";
 import IntelligentScheduler from "components/Planning/IntelligentScheduler.js";
 import TechnicianMobileApp from "components/Mobile/TechnicianMobileApp.js";
@@ -38,11 +39,12 @@ import GamificationDashboard from "components/Gamification/GamificationDashboard
 import AIAssistant from "components/AI/AIAssistant.js";
 import ProtectedRoute from "components/Security/ProtectedRoute.js";
 import IntegrationTest from "components/Testing/IntegrationTest.js";
+import TechnicianSchedule from "views/TechnicianSchedule.js";
 export default function Admin() {
   return (
     <ToastProvider>
       <Sidebar />
-      <div className="relative md:ml-64 bg-blueGray-100">
+      <div className="relative bg-blueGray-100" style={{ marginLeft: '280px' }}>
         <AdminTopBar />
         <div className="px-4 md:px-10 mx-auto w-full pt-8">
           <Switch>
@@ -54,12 +56,14 @@ export default function Admin() {
             <Route path="/admin/AddIntervention" exact component={AddIntervention} />
             <Route path="/admin/interventions" exact component={Interventions} />
             <Route path="/admin/component-orders" exact component={ComponentOrderValidation} />
+            <Route path="/admin/validation-commandes" exact component={ComponentOrderValidationModern} />
             <Route path="/admin/bont" exact component={Bont} />
             <Route path="/admin/listebont" exact component={Listebont} />
             <Route path="/admin/projet" exact component={Projet} />
             <Route path="/admin/sousprojet" exact component={SousProjet} />
             <Route path="/admin/magasinier" exact component={MagasinierDashboard} />
             <Route path="/admin/profile" exact component={Profile} />
+            <Route path="/admin/technician-schedule" exact component={TechnicianSchedule} />
             
             {/* Advanced Modules Routes - Protected */}
             <Route path="/admin/predictive-kpi" exact render={() => (

@@ -1,95 +1,103 @@
 import { PERMISSIONS, USER_ROLES } from '../../contexts/SecurityContext';
 
 // Fonction pour retourner tous les liens de la sidebar (pour les admins)
-const getAllSidebarLinks = () => {
+const getAllSidebarLinks = (t) => {
   return [
     {
-      title: "🏠 Dashboard",
+      title: t('sidebar.section.dashboard', "🏠 Dashboard"),
       items: [
-        { to: "/admin/dashboard", icon: "fas fa-tv", label: "Dashboard" },
-        { to: "/admin/profile", icon: "fas fa-user", label: "Mon Profil" },
+        { to: "/admin/dashboard", icon: "fas fa-tv", label: t('sidebar.dashboard', "Dashboard") },
+        { to: "/admin/profile", icon: "fas fa-user", label: t('sidebar.profile', "Mon Profil") },
       ],
     },
     {
-      title: "📈 Gestion de Projets",
+      title: t('sidebar.section.project_management', "📈 Gestion de Projets"),
       items: [
-        { to: "/admin/projet", icon: "fas fa-project-diagram", label: "Projets" },
-        { to: "/admin/sousprojet", icon: "fas fa-sitemap", label: "Sous-projets" },
+        { to: "/admin/projet", icon: "fas fa-project-diagram", label: t('sidebar.projects', "Projets") },
+        { to: "/admin/sousprojet", icon: "fas fa-sitemap", label: t('sidebar.subprojects', "Sous-projets") },
       ],
     },
     {
-      title: "🔧 Gestion des Interventions",
+      title: t('sidebar.section.interventions', "🔧 Gestion des Interventions"),
       items: [
-        { to: "/admin/interventions", icon: "fas fa-tools", label: "Interventions" },
-        { to: "/admin/addintervention", icon: "fas fa-plus-circle", label: "Ajouter Intervention" },
-        { to: "/admin/listebont", icon: "fas fa-list-alt", label: "Liste des Bons de Travail" },
-        { to: "/admin/bont", icon: "fas fa-file-alt", label: "Bon de Travail" },
+        { to: "/admin/interventions", icon: "fas fa-tools", label: t('sidebar.interventions', "Interventions") },
+        { to: "/admin/addintervention", icon: "fas fa-plus-circle", label: t('sidebar.add_intervention', "Ajouter Intervention") },
+        { to: "/admin/technician-schedule", icon: "fas fa-calendar-check", label: t('sidebar.technician_schedule', "Emploi du Temps") },
+        { to: "/admin/listebont", icon: "fas fa-list-alt", label: t('sidebar.work_orders', "Liste des Bons de Travail") },
+        { to: "/admin/bont", icon: "fas fa-file-alt", label: t('sidebar.work_order', "Bon de Travail") },
       ],
     },
     {
-      title: "📦 Gestion des Composants",
+      title: t('sidebar.section.components', "📦 Gestion des Composants"),
       items: [
-        { to: "/admin/component", icon: "fas fa-cogs", label: "Composants" },
-        { to: "/admin/magasinier", icon: "fas fa-warehouse", label: "Dashboard Magasinier" },
+        { to: "/admin/component", icon: "fas fa-cogs", label: t('sidebar.components', "Composants") },
+        { to: "/admin/validation-commandes", icon: "fas fa-check-circle", label: t('sidebar.validation_orders', "Validation Commandes Moderne") },
+        { to: "/admin/magasinier", icon: "fas fa-warehouse", label: t('sidebar.warehouse_dashboard', "Dashboard Magasinier") },
       ],
     },
     {
-      title: "📅 Planning & Calendrier",
+      title: t('sidebar.section.planning', "📅 Planning & Calendrier"),
       items: [
-        { to: "/admin/maps", icon: "fas fa-map-marked", label: "Planning" },
-        { to: "/admin/tables", icon: "fas fa-table", label: "Calendrier" },
+        { to: "/admin/maps", icon: "fas fa-map-marked", label: t('sidebar.planning', "Planning") },
+        { to: "/admin/tables", icon: "fas fa-table", label: t('sidebar.calendar', "Calendrier") },
       ],
     },
     {
-      title: "📈 Analytics & Rapports",
+      title: t('sidebar.section.analytics', "📈 Analytics & Rapports"),
       items: [
-        { to: "/admin/analytics", icon: "fas fa-chart-line", label: "Analytics Dashboard" },
-        { to: "/admin/predictive-kpi", icon: "fas fa-brain", label: "KPI Prédictif" },
-        { to: "/admin/enhanced-analytics", icon: "fas fa-chart-pie", label: "Analytics Avancé" },
-        { to: "/admin/advanced-analytics", icon: "fas fa-robot", label: "Analytics IA Avancé" },
+        { to: "/admin/analytics", icon: "fas fa-chart-line", label: t('sidebar.analytics', "Analytics Dashboard") },
+        { to: "/admin/predictive-kpi", icon: "fas fa-brain", label: t('sidebar.predictive_kpi', "KPI Prédictif") },
+        { to: "/admin/enhanced-analytics", icon: "fas fa-chart-pie", label: t('sidebar.enhanced_analytics', "Analytics Avancé") },
+        { to: "/admin/advanced-analytics", icon: "fas fa-robot", label: t('sidebar.advanced_analytics', "Analytics IA Avancé") },
       ],
     },
     {
-      title: "🔔 Notifications",
+      title: t('sidebar.section.notifications', "🔔 Notifications"),
       items: [
-        { to: "/admin/notifications-center", icon: "fas fa-bell", label: "Centre Notifications" },
-        { to: "/admin/magasinier", icon: "fas fa-warehouse", label: "Dashboard Magasinier" },
-        { to: "/admin/test-notifications", icon: "fas fa-vial", label: "Test Système" },
+        { to: "/admin/notifications-center", icon: "fas fa-bell", label: t('sidebar.notifications_center', "Centre Notifications") },
+        { to: "/admin/magasinier", icon: "fas fa-warehouse", label: t('sidebar.warehouse_dashboard', "Dashboard Magasinier") },
+        { to: "/admin/test-notifications", icon: "fas fa-vial", label: t('sidebar.test_system', "Test Système") },
       ],
     },
     {
-      title: "📱 Modules Mobiles",
+      title: t('sidebar.section.mobile', "📱 Modules Mobiles"),
       items: [
-        { to: "/admin/mobile-app", icon: "fas fa-mobile-alt", label: "App Mobile Techniciens" },
-        { to: "/admin/intelligent-scheduler", icon: "fas fa-calendar-alt", label: "Planificateur Intelligent" },
+        { to: "/admin/mobile-app", icon: "fas fa-mobile-alt", label: t('sidebar.mobile_app', "App Mobile Techniciens") },
+        { to: "/admin/intelligent-scheduler", icon: "fas fa-calendar-alt", label: t('sidebar.intelligent_scheduler', "Planificateur Intelligent") },
       ],
     },
     {
-      title: "🎮 Gamification & IA",
+      title: t('sidebar.section.gamification', "🎮 Gamification & IA"),
       items: [
-        { to: "/admin/gamification", icon: "fas fa-trophy", label: "Gamification" },
-        { to: "/admin/ai-assistant", icon: "fas fa-robot", label: "Assistant IA" },
+        { to: "/admin/gamification", icon: "fas fa-trophy", label: t('sidebar.gamification', "Gamification") },
+        { to: "/admin/ai-assistant", icon: "fas fa-robot", label: t('sidebar.ai_assistant', "Assistant IA") },
       ],
     },
     {
-      title: "⚙️ Administration",
+      title: t('sidebar.section.administration', "⚙️ Administration"),
       items: [
-        { to: "/admin/settings", icon: "fas fa-tools", label: "Gestion des Utilisateurs" },
-        { to: "/admin/integration-test", icon: "fas fa-vial", label: "Test d'Intégration" },
+        { to: "/admin/settings", icon: "fas fa-tools", label: t('sidebar.user_management', "Gestion des Utilisateurs") },
+        { to: "/admin/integration-test", icon: "fas fa-vial", label: t('sidebar.integration_test', "Test d'Intégration") },
       ],
     },
   ];
 };
 
 // Fonction pour générer les liens de la sidebar selon les permissions utilisateur
-export const getSidebarLinks = (userRole, userPermissions) => {
+export const getSidebarLinks = (userRole, userPermissions, t = (key, fallback) => fallback || key) => {
   console.log('🔍 getSidebarLinks appelé avec:', { userRole, userPermissions });
   
   // Si l'utilisateur est Admin, il voit tout
   if (userRole === USER_ROLES.ADMIN || userRole === 'ADMIN') {
     console.log('👑 Utilisateur Admin détecté - accès complet');
-    return getAllSidebarLinks();
+    const allLinks = getAllSidebarLinks(t);
+    console.log('📋 Liens retournés pour Admin:', allLinks);
+    return allLinks;
   }
+  
+  // Pour le debug - retourner tous les liens temporairement
+  console.log('⚠️ DEBUG MODE: Retour de tous les liens pour debug');
+  return getAllSidebarLinks(t);
 
   // Vérifier si l'utilisateur a une permission spécifique
   const hasPermission = (permission) => {
@@ -129,6 +137,7 @@ export const getSidebarLinks = (userRole, userPermissions) => {
       permission: "manage_stock",
       items: [
         { to: "/admin/component", icon: "fas fa-cubes", label: "Composants", permission: "manage_stock" },
+        { to: "/admin/validation-commandes", icon: "fas fa-check-circle", label: "Validation Commandes Moderne", permission: null },
         { to: "/admin/magasinier", icon: "fas fa-warehouse", label: "Dashboard Magasinier", permission: "manage_stock" },
       ],
     },
@@ -139,7 +148,7 @@ export const getSidebarLinks = (userRole, userPermissions) => {
         { to: "/admin/notifications-center", icon: "fas fa-bell", label: "Centre Notifications", permission: null },
         { to: "/admin/magasinier", icon: "fas fa-warehouse", label: "Dashboard Magasinier", permission: "manage_stock" },
         { to: "/admin/test-notifications", icon: "fas fa-vial", label: "Test Système", permission: null },
-        { to: "/admin/component-orders", icon: "fas fa-check-circle", label: "Validation Commandes", permission: null },
+        { to: "/admin/validation-commandes", icon: "fas fa-check-circle", label: "Validation Commandes Moderne", permission: null },
       ],
     },
     {
@@ -156,6 +165,7 @@ export const getSidebarLinks = (userRole, userPermissions) => {
       items: [
         { to: "/admin/interventions", icon: "fas fa-clipboard-list", label: "Liste des interventions", permission: "create_intervention" },
         { to: "/admin/AddIntervention", icon: "fas fa-plus-circle", label: "Ajouter intervention", permission: "create_intervention" },
+        { to: "/admin/technician-schedule", icon: "fas fa-calendar-check", label: "Emploi du Temps", permission: null },
       ],
     },
     {

@@ -186,7 +186,7 @@
             const notificationResults = [];
             
             for (const magasinier of magasiniers) {
-                const notifResult = await makeRequest(`${API_BASE}/notifications/user/${magasinier.id}`);
+                const notifResult = await makeRequest(`${API_BASE}/PI/PI/notifications/user/${magasinier.id}`);
                 notificationResults.push({
                     magasinier: `${magasinier.firstName} ${magasinier.lastName} (ID: ${magasinier.id})`,
                     notifications: notifResult.success ? notifResult.data : `Erreur: ${notifResult.error || notifResult.data}`,

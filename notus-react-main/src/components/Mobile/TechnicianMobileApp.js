@@ -119,7 +119,7 @@ const TechnicianMobileApp = () => {
         await fetch(`http://localhost:8089/PI/PI/demandes/update/${action.interventionId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ statut: action.status })
+          body: JSON.stringify({ statut: action.status === 'TERMINE' ? 'TERMINEE' : action.status })
         });
         break;
       case 'ADD_REPORT':

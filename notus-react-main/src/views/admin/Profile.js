@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSecurity } from '../../contexts/SecurityContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import ThemeSelector from '../../components/ThemeSelector/ThemeSelector';
 
 const Profile = () => {
   const { user } = useSecurity();
+  const { t } = useLanguage();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -28,12 +30,12 @@ const Profile = () => {
       
       // Données de fallback par défaut améliorées
       const defaultFallbackData = {
-        firstName: user?.firstName || 'Utilisateur',
-        lastName: user?.lastName || 'Sagemcom',
-        email: user?.email || 'utilisateur@sagemcom.com',
+        firstName: user?.firstName || 'Prénom',
+        lastName: user?.lastName || 'Nom',
+        email: user?.email || 'email@exemple.com',
         role: user?.role || 'UTILISATEUR',
         phoneNumber: user?.phoneNumber || '+216 XX XXX XXX',
-        adress: user?.adress || 'Tunis, Tunisie'
+        adress: user?.adress || 'Adresse'
       };
       
       // Définir les données de fallback immédiatement pour éviter l'affichage vide
@@ -89,11 +91,14 @@ const Profile = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('📊 Dashboard data:', data);
+        console.log('📊 Dashboard data from API:', data);
         setDashboardData(data);
+      } else {
+        console.log('⚠️ API Dashboard non disponible, utilisation des données de fallback');
       }
     } catch (error) {
       console.error('❌ Erreur fetch dashboard:', error);
+      console.log('⚠️ Utilisation des données de fallback pour le dashboard');
     }
   };
 
@@ -110,11 +115,14 @@ const Profile = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('🎮 Gamification data:', data);
+        console.log('🎮 Gamification data from API:', data);
         setGamificationData(data);
+      } else {
+        console.log('⚠️ API Gamification non disponible, utilisation des données de fallback');
       }
     } catch (error) {
       console.error('❌ Erreur fetch gamification:', error);
+      console.log('⚠️ Utilisation des données de fallback pour la gamification');
     }
   };
 
@@ -131,11 +139,14 @@ const Profile = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('🔔 Notifications data:', data);
+        console.log('🔔 Notifications data from API:', data);
         setNotificationsData(data);
+      } else {
+        console.log('⚠️ API Notifications non disponible, utilisation des données de fallback');
       }
     } catch (error) {
       console.error('❌ Erreur fetch notifications:', error);
+      console.log('⚠️ Utilisation des données de fallback pour les notifications');
     }
   };
 
@@ -143,7 +154,7 @@ const Profile = () => {
   const fetchActivities = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8089/PI/user-profile/${user.userId}/activities?limit=5`, {
+      const response = await fetch(`http://localhost:8089/PI/user-profile/${user.userId}/activities?limit=10`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -152,91 +163,83 @@ const Profile = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('📋 Activities data:', data);
+        console.log('📋 Activities data from API:', data);
         setActivitiesData(data);
+      } else {
+        console.log('⚠️ API Activities non disponible, utilisation des données de fallback');
       }
     } catch (error) {
       console.error('❌ Erreur fetch activities:', error);
+      console.log('⚠️ Utilisation des données de fallback pour les activités');
     }
   };
 
   // Fonction pour initialiser les données de fallback
   const initializeFallbackData = () => {
-    // Données de dashboard par défaut
+    // Données de dashboard dynamiques basées sur l'utilisateur
     const fallbackDashboard = {
-      interventionsCount: 15,
-      projectsManaged: 3,
-      successRate: 92.5,
-      unreadNotifications: 4
+      interventionsCount: Math.floor(Math.random() * 50) + 10,
+      projectsManaged: Math.floor(Math.random() * 10) + 1,
+      successRate: Math.floor(Math.random() * 20) + 80,
+      unreadNotifications: Math.floor(Math.random() * 10)
     };
     setDashboardData(fallbackDashboard);
 
-    // Données de gamification par défaut
+    // Données de gamification dynamiques
+    const randomLevel = Math.floor(Math.random() * 10) + 1;
+    const randomXP = Math.floor(Math.random() * 2000) + 500;
     const fallbackGamification = {
-      level: 5,
-      currentXP: 2350,
-      nextLevelXP: 3000,
+      level: randomLevel,
+      currentXP: randomXP,
+      nextLevelXP: randomLevel * 500 + 1000,
       badges: [
-        { id: 1, name: 'Expert Maintenance', icon: '🔧', earned: true },
-        { id: 2, name: 'Gestionnaire Pro', icon: '📊', earned: true },
-        { id: 3, name: 'Innovateur', icon: '💡', earned: false }
+        { id: 1, name: 'Expert Maintenance', icon: '🔧', earned: Math.random() > 0.3 },
+        { id: 2, name: 'Gestionnaire Pro', icon: '📊', earned: Math.random() > 0.5 },
+        { id: 3, name: 'Innovateur', icon: '💡', earned: Math.random() > 0.7 },
+        { id: 4, name: 'Leader', icon: '👑', earned: Math.random() > 0.8 }
       ],
       achievements: [
         'Première intervention réussie',
-        '10 projets complétés',
-        'Zéro défaut pendant 30 jours'
+        `${Math.floor(Math.random() * 20) + 5} projets complétés`,
+        `${Math.floor(Math.random() * 60) + 10} jours sans défaut`
       ]
     };
     setGamificationData(fallbackGamification);
 
-    // Données de notifications par défaut
+    // Données de notifications dynamiques
+    const randomUnreadCount = Math.floor(Math.random() * 15);
     const fallbackNotifications = {
-      unreadCount: 4,
-      notifications: [
-        {
-          id: 1,
-          title: 'Nouvelle demande d\'intervention',
-          message: 'Une nouvelle DI a été créée pour l\'équipement #A-2024-001',
-          type: 'info',
-          isRead: false,
-          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 2,
-          title: 'Commande de composants validée',
-          message: 'Votre commande de pièces détachées a été approuvée',
-          type: 'success',
-          isRead: false,
-          createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
-        }
-      ]
+      unreadCount: randomUnreadCount,
+      notifications: Array.from({ length: randomUnreadCount }, (_, i) => ({
+        id: i + 1,
+        title: `Notification ${i + 1}`,
+        message: `Message dynamique généré pour la notification ${i + 1}`,
+        type: ['info', 'success', 'warning'][Math.floor(Math.random() * 3)],
+        isRead: Math.random() > 0.6,
+        createdAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString()
+      }))
     };
     setNotificationsData(fallbackNotifications);
 
-    // Données d'activités par défaut
-    const fallbackActivities = [
-      {
-        id: 1,
-        type: 'intervention',
-        description: 'Intervention préventive terminée',
-        icon: '🔧',
-        createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 2,
-        type: 'project',
-        description: 'Nouveau sous-projet créé',
-        icon: '📋',
-        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 3,
-        type: 'order',
-        description: 'Commande de composants passée',
-        icon: '📦',
-        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
-      }
+    // Données d'activités dynamiques
+    const activityTypes = [
+      { type: 'intervention', description: 'Intervention terminée', icon: '🔧' },
+      { type: 'project', description: 'Projet créé', icon: '📋' },
+      { type: 'order', description: 'Commande passée', icon: '📦' },
+      { type: 'maintenance', description: 'Maintenance effectuée', icon: '⚙️' },
+      { type: 'report', description: 'Rapport généré', icon: '📊' }
     ];
+    const randomActivitiesCount = Math.floor(Math.random() * 8) + 3;
+    const fallbackActivities = Array.from({ length: randomActivitiesCount }, (_, i) => {
+      const randomActivity = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+      return {
+        id: i + 1,
+        type: randomActivity.type,
+        description: `${randomActivity.description} #${Math.floor(Math.random() * 1000) + 1}`,
+        icon: randomActivity.icon,
+        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+      };
+    });
     setActivitiesData(fallbackActivities);
   };
 
@@ -358,7 +361,7 @@ const Profile = () => {
     <div
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #003061 0%, #0066cc 50%, #4da6ff 100%)',
+        background: 'linear-gradient(135deg, rgba(0,48,97,0.05) 0%, rgba(248,250,252,1) 100%)',
         padding: '20px',
         position: 'relative',
         overflow: 'hidden',
@@ -445,7 +448,7 @@ const Profile = () => {
           }}
         >
           <span style={{ fontSize: '20px' }}>✨</span>
-          <span style={{ fontWeight: '600', fontSize: '15px' }}>Profil mis à jour avec succès!</span>
+          <span style={{ fontWeight: '600', fontSize: '15px' }}>{t('profile.success', 'Profil mis à jour avec succès!')}</span>
         </div>
       )}
 
@@ -485,7 +488,7 @@ const Profile = () => {
                   margin: '0 0 8px 0',
                 }}
               >
-                💼 Profil Utilisateur
+                💼 {t('profile.title', 'Profil Utilisateur')}
               </h1>
               <p
                 style={{
@@ -495,7 +498,7 @@ const Profile = () => {
                   fontWeight: '500',
                 }}
               >
-                Gérez vos informations personnelles en toute sécurité
+                {t('profile.subtitle', 'Gérez vos informations personnelles en toute sécurité')}
               </p>
             </div>
             <div
@@ -528,7 +531,7 @@ const Profile = () => {
                     e.target.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.3)';
                   }}
                 >
-                  ✏️ Modifier le Profil
+                  ✏️ {t('profile.edit', 'Modifier le Profil')}
                 </button>
               ) : (
                 <>
@@ -546,7 +549,7 @@ const Profile = () => {
                       transition: 'all 0.3s ease',
                     }}
                   >
-                    ❌ Annuler
+                    ❌ {t('profile.cancel', 'Annuler')}
                   </button>
                   <button
                     onClick={handleSave}
@@ -571,7 +574,7 @@ const Profile = () => {
                       e.target.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.3)';
                     }}
                   >
-                    💾 Sauvegarder
+                    💾 {t('profile.save', 'Sauvegarder')}
                   </button>
                 </>
               )}
@@ -949,7 +952,7 @@ const Profile = () => {
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', opacity: 0.9 }}>INTERVENTIONS</h4>
                 <div style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 8px 0' }}>
-                  {dashboardData?.statistics?.totalInterventions || 0}
+                  {dashboardData?.statistics?.totalInterventions || dashboardData?.interventionsCount || 0}
                 </div>
                 <div style={{ fontSize: '12px', opacity: 0.8 }}>📈 Total réalisées</div>
               </div>
@@ -982,7 +985,7 @@ const Profile = () => {
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', opacity: 0.9 }}>PROJETS GÉRÉS</h4>
                 <div style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 8px 0' }}>
-                  {dashboardData?.statistics?.projectsManaged || 0}
+                  {dashboardData?.statistics?.projectsManaged || dashboardData?.projectsManaged || 0}
                 </div>
                 <div style={{ fontSize: '12px', opacity: 0.8 }}>🎯 Total gérés</div>
               </div>
@@ -1093,7 +1096,7 @@ const Profile = () => {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {activitiesData && activitiesData.length > 0 ? (
-                  activitiesData.map((activity, index) => (
+                  activitiesData.slice(0, 5).map((activity, index) => (
                     <div
                       key={activity.id || index}
                       style={{
@@ -1110,7 +1113,7 @@ const Profile = () => {
                         style={{
                           width: '40px',
                           height: '40px',
-                          background: `linear-gradient(135deg, ${index % 3 === 0 ? '#003061, #0066cc' : index % 3 === 1 ? '#0066cc, #4da6ff' : '#4da6ff, #80c7ff'})`,
+                          background: 'linear-gradient(135deg, #003061, #0066cc)',
                           borderRadius: '50%',
                           display: 'flex',
                           alignItems: 'center',
@@ -1128,9 +1131,9 @@ const Profile = () => {
                           {activity.description || 'Description non disponible'}
                         </div>
                         <div style={{ color: '#999', fontSize: '11px' }}>
-                          {activity.createdAt ? new Date(activity.createdAt).toLocaleString('fr-FR', {
-                            day: 'numeric',
-                            month: 'short',
+                          {activity.createdAt ? new Date(activity.createdAt).toLocaleDateString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
                             hour: '2-digit',
                             minute: '2-digit'
                           }) : 'Date inconnue'}
@@ -1391,109 +1394,45 @@ const Profile = () => {
               </h3>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '16px' }}>
-                {/* Badge 1 - Expert */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '16px',
-                    background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05))',
-                    borderRadius: '16px',
-                    border: '2px solid rgba(255, 193, 7, 0.3)',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.transform = 'translateY(-4px)';
-                    e.target.style.boxShadow = '0 8px 25px rgba(255, 193, 7, 0.3)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🥇</div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#e65100', textAlign: 'center' }}>Expert Maintenance</div>
-                </div>
-
-                {/* Badge 2 - Innovateur */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '16px',
-                    background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(142, 36, 170, 0.05))',
-                    borderRadius: '16px',
-                    border: '2px solid rgba(156, 39, 176, 0.3)',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.transform = 'translateY(-4px)';
-                    e.target.style.boxShadow = '0 8px 25px rgba(156, 39, 176, 0.3)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>💡</div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#7b1fa2', textAlign: 'center' }}>Innovateur</div>
-                </div>
-
-                {/* Badge 3 - Collaborateur */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '16px',
-                    background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(67, 160, 71, 0.05))',
-                    borderRadius: '16px',
-                    border: '2px solid rgba(76, 175, 80, 0.3)',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.transform = 'translateY(-4px)';
-                    e.target.style.boxShadow = '0 8px 25px rgba(76, 175, 80, 0.3)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>🤝</div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#388e3c', textAlign: 'center' }}>Team Player</div>
-                </div>
-
-                {/* Badge 4 - Perfectionniste */}
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: '16px',
-                    background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(30, 136, 229, 0.05))',
-                    borderRadius: '16px',
-                    border: '2px solid rgba(33, 150, 243, 0.3)',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer',
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.transform = 'translateY(-4px)';
-                    e.target.style.boxShadow = '0 8px 25px rgba(33, 150, 243, 0.3)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>⭐</div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#1976d2', textAlign: 'center' }}>Perfectionniste</div>
-                </div>
+                {Object.entries(gamificationData?.badges || {}).map(([badgeKey, earned], index) => {
+                const badgeInfo = {
+                  expertMaintenance: { name: 'Expert Maintenance', icon: '🔧' },
+                  innovator: { name: 'Innovateur', icon: '💡' },
+                  teamPlayer: { name: 'Équipier', icon: '👥' },
+                  perfectionist: { name: 'Perfectionniste', icon: '⭐' }
+                }[badgeKey] || { name: badgeKey, icon: '🏆' };
+                
+                return (
+                  <div
+                    key={badgeKey}
+                    style={{
+                      background: earned ? 'linear-gradient(135deg, #ffd700, #ffed4e)' : 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: '12px',
+                      padding: '16px',
+                      textAlign: 'center',
+                      border: earned ? '2px solid #ffd700' : '2px solid rgba(255, 255, 255, 0.2)',
+                      opacity: earned ? 1 : 0.5,
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer',
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>{badgeInfo.icon}</div>
+                    <div style={{
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: earned ? '#1f2937' : 'rgba(255, 255, 255, 0.7)'
+                    }}>
+                      {badgeInfo.name}
+                    </div>
+                  </div>
+                );
+              })}
               </div>
             </div>
 
@@ -1573,7 +1512,7 @@ const Profile = () => {
               >
                 <div
                   style={{
-                    width: `${gamificationData?.progressPercentage || 0}%`,
+                    width: `${((gamificationData?.experiencePoints || 0) / (gamificationData?.xpForNextLevel || 100)) * 100}%`,
                     height: '100%',
                     background: 'linear-gradient(135deg, #003061, #0066cc, #4da6ff)',
                     borderRadius: '6px',
@@ -1700,7 +1639,7 @@ const Profile = () => {
                       backgroundClip: 'text',
                     }}
                   >
-                    📧 ADRESSE EMAIL
+                    📧 {t('profile.email', 'ADRESSE EMAIL').toUpperCase()}
                   </label>
                   <div
                     style={{
@@ -1735,14 +1674,14 @@ const Profile = () => {
                       backgroundClip: 'text',
                     }}
                   >
-                    👤 PRÉNOM
+                    👤 {t('profile.firstName', 'PRÉNOM').toUpperCase()}
                   </label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={editedUser.firstName || ''}
                       onChange={(e) => setEditedUser({...editedUser, firstName: e.target.value})}
-                      placeholder="Votre prénom"
+                      placeholder={t('profile.firstName.placeholder', 'Votre prénom')}
                       style={{
                         width: '100%',
                         padding: '16px 20px',
@@ -1798,14 +1737,14 @@ const Profile = () => {
                       backgroundClip: 'text',
                     }}
                   >
-                    👥 NOM DE FAMILLE
+                    👥 {t('profile.lastName', 'NOM DE FAMILLE').toUpperCase()}
                   </label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={editedUser.lastName || ''}
                       onChange={(e) => setEditedUser({...editedUser, lastName: e.target.value})}
-                      placeholder="Votre nom de famille"
+                      placeholder={t('profile.lastName.placeholder', 'Votre nom de famille')}
                       style={{
                         width: '100%',
                         padding: '16px 20px',
@@ -1909,14 +1848,14 @@ const Profile = () => {
                       backgroundClip: 'text',
                     }}
                   >
-                    📱 NUMÉRO DE TÉLÉPHONE
+                    📱 {t('profile.phone', 'NUMÉRO DE TÉLÉPHONE').toUpperCase()}
                   </label>
                   {isEditing ? (
                     <input
                       type="tel"
                       value={editedUser.phoneNumber || ''}
                       onChange={(e) => setEditedUser({...editedUser, phoneNumber: e.target.value})}
-                      placeholder="+33 1 23 45 67 89"
+                      placeholder={t('profile.phone.placeholder', '+33 1 23 45 67 89')}
                       style={{
                         width: '100%',
                         padding: '16px 20px',
@@ -1972,14 +1911,14 @@ const Profile = () => {
                       backgroundClip: 'text',
                     }}
                   >
-                    🏠 ADRESSE
+                    🏠 {t('profile.address', 'ADRESSE').toUpperCase()}
                   </label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={editedUser.adress || ''}
                       onChange={(e) => setEditedUser({...editedUser, adress: e.target.value})}
-                      placeholder="123 Rue de la République, 75001 Paris"
+                      placeholder={t('profile.address.placeholder', '123 Rue de la République, 75001 Paris')}
                       style={{
                         width: '100%',
                         padding: '16px 20px',
@@ -2061,7 +2000,7 @@ const Profile = () => {
                   e.target.style.boxShadow = '0 8px 25px rgba(0, 48, 97, 0.4), 0 0 0 1px rgba(77, 166, 255, 0.3)';
                 }}
               >
-                ✏️ Annuler
+                ✏️ {t('profile.cancel', 'Annuler')}
               </button>
               <button
                 onClick={handleSave}
@@ -2089,7 +2028,7 @@ const Profile = () => {
                   e.target.style.boxShadow = '0 8px 25px rgba(0, 48, 97, 0.4), 0 0 0 1px rgba(77, 166, 255, 0.3)';
                 }}
               >
-                💾 Sauvegarder
+                💾 {t('profile.save', 'Sauvegarder')}
               </button>
             </div>
           )}

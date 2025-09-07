@@ -31,7 +31,7 @@ export default function ListeBonTravail() {
     setSelectedBon(bon);
     setSelectedComponentIds(bon.composants ? bon.composants.map(c => getCode(c)) : []);
     try {
-      const resp = await fetch("http://localhost:8089/PI/component/all");
+      const resp = await fetch("http://localhost:8089/PI/PI/component/all");
       if (resp.ok) {
         const data = await resp.json();
         setAllComponents(data);

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 import { useSecurity } from "../../contexts/SecurityContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -10,12 +11,13 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const history = useHistory();
   const { login } = useSecurity();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
-      setError("Veuillez remplir tous les champs.");
+      setError(t('auth.error.required_fields', "Veuillez remplir tous les champs."));
       return;
     }
 
@@ -271,7 +273,7 @@ export default function Login() {
                   letterSpacing: "-0.5px",
                 }}
               >
-                Connexion Sécurisée
+                {t('auth.secure_login', 'Connexion Sécurisée')}
               </h1>
               
               {/* Subtitle */}
@@ -334,7 +336,7 @@ export default function Login() {
                     marginBottom: 8,
                   }}
                 >
-                  📧 Adresse Email
+                  📧 {t('auth.email', 'Adresse Email')}
                 </label>
                 <input
                   type="email"
@@ -382,7 +384,7 @@ export default function Login() {
                     marginBottom: 8,
                   }}
                 >
-                  🔑 Mot de Passe
+                  🔒 {t('auth.password', 'Mot de passe')}
                 </label>
                 <input
                   type="password"
@@ -480,11 +482,11 @@ export default function Login() {
                         animation: "spin 1s linear infinite",
                       }}
                     />
-                    Connexion en cours...
+                    {t('auth.logging_in', 'Connexion en cours...')}
                   </>
                 ) : (
                   <>
-                    🚀 Se Connecter
+                    🚀 {t('auth.login_button', 'Se Connecter')}
                   </>
                 )}
               </button>
@@ -560,7 +562,7 @@ export default function Login() {
                     fontWeight: "500",
                   }}
                 >
-                  🔒 Connexion sécurisée SSL
+                  🔒 {t('auth.secure_ssl', 'Connexion sécurisée SSL')}
                 </p>
                 <p
                   style={{

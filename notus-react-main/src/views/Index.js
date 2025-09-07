@@ -433,7 +433,7 @@ export default function Index() {
                   marginBottom: '1.5rem'
                 }}
               >
-                MAINTENANCE OPTIMISÉE
+                {t('index.services.title')}
               </div>
               
               <h2 
@@ -445,7 +445,7 @@ export default function Index() {
                   lineHeight: '1.2'
                 }}
               >
-                Gérez vos opérations en toute simplicité
+                {t('index.services.subtitle')}
               </h2>
             </div>
             
@@ -502,7 +502,7 @@ export default function Index() {
                       marginBottom: '0.75rem'
                     }}
                   >
-                    Gestion des données matérielles
+                    {t('index.services.card1.title')}
                   </h3>
                   <p 
                     style={{
@@ -510,7 +510,7 @@ export default function Index() {
                       lineHeight: '1.6'
                     }}
                   >
-                    Optimisez la gestion de vos ressources matérielles avec un suivi complet et une traçabilité avancée.
+                    {t('index.services.card1.description')}
                   </p>
                 </div>
               </div>
@@ -560,7 +560,7 @@ export default function Index() {
                       marginBottom: '0.75rem'
                     }}
                   >
-                    Planification des interventions
+                    {t('index.services.card2.title')}
                   </h3>
                   <p 
                     style={{
@@ -568,7 +568,7 @@ export default function Index() {
                       lineHeight: '1.6'
                     }}
                   >
-                    Améliorez votre efficacité avec notre planification intelligente et automatisée des interventions.
+                    {t('index.services.card2.description')}
                   </p>
                 </div>
               </div>
@@ -618,7 +618,7 @@ export default function Index() {
                       marginBottom: '0.75rem'
                     }}
                   >
-                    Suivi des stocks de pièces de rechange
+                    {t('index.services.card3.title')}
                   </h3>
                   <p 
                     style={{
@@ -626,7 +626,7 @@ export default function Index() {
                       lineHeight: '1.6'
                     }}
                   >
-                    Gérez vos stocks de manière optimale et évitez les ruptures avec notre système intelligent.
+                    {t('index.services.card3.description')}
                   </p>
                 </div>
               </div>
@@ -671,7 +671,7 @@ export default function Index() {
                   marginBottom: '0.75rem'
                 }}
               >
-                SIMPLIFIEZ VOTRE MAINTENANCE
+                {t('index.operations.title')}
               </div>
               
               <h2 
@@ -684,7 +684,7 @@ export default function Index() {
                   textAlign: 'left'
                 }}
               >
-                Gérez efficacement vos opérations au quotidien.
+                {t('index.operations.subtitle')}
               </h2>
             </div>
             
@@ -730,7 +730,7 @@ export default function Index() {
                       marginBottom: '0.5rem'
                     }}
                   >
-                    Gestion des utilisateurs
+                    {t('index.operations.users.title')}
                   </h3>
                   <p 
                     style={{
@@ -740,7 +740,7 @@ export default function Index() {
                       marginBottom: '0.75rem'
                     }}
                   >
-                    Optimisez la collaboration en gérant efficacement vos utilisateurs.
+                    {t('index.operations.users.description')}
                   </p>
                   <a 
                     href="#" 
@@ -751,7 +751,7 @@ export default function Index() {
                       fontSize: '0.875rem'
                     }}
                   >
-                    Learn more
+                    {t('index.operations.learn_more')}
                   </a>
                 </div>
               </div>
@@ -788,7 +788,7 @@ export default function Index() {
                       marginBottom: '0.5rem'
                     }}
                   >
-                    Suivi des interventions
+                    {t('index.operations.interventions.title')}
                   </h3>
                   <p 
                     style={{
@@ -798,7 +798,7 @@ export default function Index() {
                       marginBottom: '0.75rem'
                     }}
                   >
-                    Suivez toutes vos interventions pour une maintenance optimisée.
+                    {t('index.operations.interventions.description')}
                   </p>
                   <a 
                     href="#" 
@@ -846,7 +846,7 @@ export default function Index() {
                       marginBottom: '0.5rem'
                     }}
                   >
-                    Gestion des stocks
+                    {t('index.operations.stock.title')}
                   </h3>
                   <p 
                     style={{
@@ -856,7 +856,7 @@ export default function Index() {
                       marginBottom: '0.75rem'
                     }}
                   >
-                    Maîtrisez vos stocks de pièces pour une maintenance efficace.
+                    {t('index.operations.stock.description')}
                   </p>
                   <a 
                     href="#" 
@@ -904,7 +904,7 @@ export default function Index() {
                       marginBottom: '0.5rem'
                     }}
                   >
-                    Analyse des KPI
+                    {t('index.operations.kpi.title')}
                   </h3>
                   <p 
                     style={{
@@ -914,7 +914,7 @@ export default function Index() {
                       marginBottom: '0.75rem'
                     }}
                   >
-                    Optimisez vos opérations grâce à l'analyse des KPI.
+                    {t('index.operations.kpi.description')}
                   </p>
                   <a 
                     href="#" 
@@ -925,7 +925,7 @@ export default function Index() {
                       fontSize: '0.875rem'
                     }}
                   >
-                    Learn more
+                    {t('index.operations.learn_more')}
                   </a>
                 </div>
               </div>

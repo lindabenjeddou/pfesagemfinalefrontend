@@ -110,7 +110,7 @@
             }
             
             console.log(`🔍 Vérification des notifications pour l'utilisateur ${userId}...`);
-            const result = await makeRequest(`${API_BASE}/notifications/user/${userId}`);
+            const result = await makeRequest(`${API_BASE}/PI/PI/notifications/user/${userId}`);
             showResult('notifications-result', result, result.success ? 'success' : 'error');
         }
         

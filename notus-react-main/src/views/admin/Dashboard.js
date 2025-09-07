@@ -1,4 +1,5 @@
 import React from "react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 // components
 
@@ -8,6 +9,7 @@ import CardPageVisits from "components/Cards/CardPageVisits.js";
 import CardSocialTraffic from "components/Cards/CardSocialTraffic.js";
 
 export default function Dashboard() {
+  const { t } = useLanguage();
   return (
     <>
       <div className="flex flex-wrap">

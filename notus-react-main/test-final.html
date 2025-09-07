@@ -186,7 +186,7 @@
             let totalNotifications = 0;
             
             for (const magasinier of magasiniers) {
-                const notifResult = await makeRequest(`${API_BASE}/notifications/user/${magasinier.id}`);
+                const notifResult = await makeRequest(`${API_BASE}/PI/PI/notifications/user/${magasinier.id}`);
                 const notifications = notifResult.success && Array.isArray(notifResult.data) ? notifResult.data : [];
                 
                 notificationResults.push({

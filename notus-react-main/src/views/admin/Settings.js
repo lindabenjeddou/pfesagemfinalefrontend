@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 // Animations CSS
 const styles = `
@@ -149,6 +150,7 @@ const FormIcon = ({ type, size = "20px", color = "#6B7280" }) => {
 };
 
 export default function Settings() {
+  const { t } = useLanguage();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -240,7 +242,7 @@ export default function Settings() {
 
   // Fonction pour supprimer un utilisateur
   const deleteUser = async (userId) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) return;
+    if (!window.confirm(t('settings.delete.confirm', "Êtes-vous sûr de vouloir supprimer cet utilisateur ?"))) return;
     
     try {
       const token = localStorage.getItem("token");
@@ -498,7 +500,7 @@ export default function Settings() {
           margin: "0 0 0.5rem 0",
           textShadow: "0 2px 4px rgba(0,0,0,0.1)"
         }}>
-          👥 Gestion des Utilisateurs
+          👥 {t('settings.title', 'Gestion des Utilisateurs')}
         </h1>
         <p style={{
           color: "#6B7280",
@@ -507,7 +509,7 @@ export default function Settings() {
           fontWeight: "500",
           textAlign: "center"
         }}>
-          Administration et suivi des comptes utilisateurs
+          {t('settings.subtitle', 'Administration et suivi des comptes utilisateurs')}
         </p>
       </div>
 
@@ -521,10 +523,10 @@ export default function Settings() {
         margin: "0 auto 2rem auto"
       }}>
         {[
-          { key: 'total', label: 'Total Utilisateurs', value: statistics.total, color: '#3B82F6', type: 'total' },
-          { key: 'admin', label: 'Administrateurs', value: statistics.admin, color: '#EF4444', type: 'admin' },
-          { key: 'technicians', label: 'Techniciens', value: statistics.technicians, color: '#8B5CF6', type: 'technician' },
-          { key: 'unconfirmed', label: 'Non Confirmés', value: statistics.unconfirmed, color: '#F59E0B', type: 'unconfirmed' }
+          { key: 'total', label: t('settings.stats.total', 'Total Utilisateurs'), value: statistics.total, color: '#3B82F6', type: 'total' },
+          { key: 'admin', label: t('settings.stats.admins', 'Administrateurs'), value: statistics.admin, color: '#EF4444', type: 'admin' },
+          { key: 'technicians', label: t('settings.stats.technicians', 'Techniciens'), value: statistics.technicians, color: '#8B5CF6', type: 'technician' },
+          { key: 'unconfirmed', label: t('settings.stats.unconfirmed', 'Non Confirmés'), value: statistics.unconfirmed, color: '#F59E0B', type: 'unconfirmed' }
         ].map((stat) => (
           <div key={stat.key} style={{
             background: "linear-gradient(135deg, " + stat.color + " 0%, " + stat.color + "CC 100%)",
@@ -602,11 +604,11 @@ export default function Settings() {
                 marginBottom: "0.5rem"
               }}>
                 <FormIcon type="search" size="18px" color="#667EEA" />
-                🔍 Rechercher
+                🔍 {t('settings.search', 'Rechercher')}
               </label>
               <input
                 type="text"
-                placeholder="Nom, prénom, email..."
+                placeholder={t('settings.search.placeholder', 'Nom, prénom, email...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
@@ -641,7 +643,7 @@ export default function Settings() {
                 marginBottom: "0.5rem"
               }}>
                 <FormIcon type="filter" size="18px" color="#667EEA" />
-                🏷️ Filtrer par rôle
+                🏷️ {t('settings.role.filter', 'Filtrer par rôle')}
               </label>
               <select
                 value={roleFilter}
@@ -1026,7 +1028,7 @@ export default function Settings() {
                     color: "#374151",
                     marginBottom: "0.5rem"
                   }}>
-                    👤 Prénom *
+                    👤 {t('profile.firstName', 'Prénom')} *
                   </label>
                   <input
                     type="text"
@@ -1062,7 +1064,7 @@ export default function Settings() {
                     color: "#374151",
                     marginBottom: "0.5rem"
                   }}>
-                    👥 Nom *
+                    👥 {t('profile.lastName', 'Nom')} *
                   </label>
                   <input
                     type="text"
@@ -1099,7 +1101,7 @@ export default function Settings() {
                   color: "#374151",
                   marginBottom: "0.5rem"
                 }}>
-                  📧 Email *
+                  📧 {t('profile.email', 'Email')} *
                 </label>
                 <input
                   type="email"
@@ -1141,7 +1143,7 @@ export default function Settings() {
                     color: "#374151",
                     marginBottom: "0.5rem"
                   }}>
-                    📞 Téléphone
+                    📞 {t('profile.phone', 'Téléphone')}
                   </label>
                   <input
                     type="tel"
@@ -1176,7 +1178,7 @@ export default function Settings() {
                     color: "#374151",
                     marginBottom: "0.5rem"
                   }}>
-                    🏆 Rôle
+                    🏆 {t('profile.role', 'Rôle')}
                   </label>
                   <select
                     name="role"
@@ -1220,7 +1222,7 @@ export default function Settings() {
                   color: "#374151",
                   marginBottom: "0.5rem"
                 }}>
-                  🏠 Adresse
+                  🏠 {t('profile.address', 'Adresse')}
                 </label>
                 <input
                   type="text"

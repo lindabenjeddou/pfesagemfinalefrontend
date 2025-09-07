@@ -8,6 +8,14 @@ export default function Interventions() {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [formData, setFormData] = useState({
+    description: "",
+    titre: "",
+    priorite: "NORMALE"
+  });
 
   useEffect(() => {
     fetchInterventions();
@@ -19,7 +27,7 @@ export default function Interventions() {
     try {
       const response = await fetch("http://localhost:8089/PI/PI/demandes/recuperer/all");
       if (!response.ok) {
-        throw new Error("Erreur lors du chargement des interventions");
+        throw new Error(t('intervention.error.loading', "Erreur lors du chargement des interventions"));
       }
       const data = await response.json();
       setInterventions(data);
@@ -29,6 +37,46 @@ export default function Interventions() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const createIntervention = async (e) => {
+    e.preventDefault();
+    setCreateLoading(true);
+    setCreateError("");
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch("http://localhost:8089/PI/PI/demandes/create", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) {
+        throw new Error("Erreur lors de la création de l'intervention");
+      }
+      
+      // Reset form and close modal
+      setFormData({ description: "", titre: "", priorite: "NORMALE" });
+      setShowCreateForm(false);
+      
+      // Refresh interventions list
+      await fetchInterventions();
+      
+    } catch (error) {
+      console.error("Erreur création:", error);
+      setCreateError("Une erreur s'est produite lors de la création.");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   // Pagination
@@ -316,6 +364,41 @@ export default function Interventions() {
 
           {/* Contenu principal */}
           <div style={{ padding: '3rem 2rem' }}>
+            {/* Bouton Créer Intervention */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: '2rem'
+            }}>
+              <button
+                onClick={() => setShowCreateForm(true)}
+                style={{
+                  padding: '1rem 2rem',
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                }}
+              >
+                ➕ {t('interventions.create', 'Créer une Intervention')}
+              </button>
+            </div>
             {/* Section des statistiques */}
             <div style={{
               display: 'grid',
@@ -695,6 +778,273 @@ export default function Interventions() {
             )}
           </div>
         </div>
+
+        {/* Modal de création */}
+        {showCreateForm && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '2rem'
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #ffffff, #f8fafc)',
+              borderRadius: '24px',
+              padding: '3rem',
+              maxWidth: '600px',
+              width: '100%',
+              boxShadow: '0 32px 64px rgba(0, 0, 0, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              animation: 'fadeInUp 0.3s ease-out'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '2rem'
+              }}>
+                <h2 style={{
+                  fontSize: '1.75rem',
+                  fontWeight: '700',
+                  color: '#003061',
+                  margin: 0
+                }}>🔧 {t('interventions.create_title', 'Nouvelle Intervention')}</h2>
+                <button
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setCreateError("");
+                    setFormData({ description: "", titre: "", priorite: "NORMALE" });
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    color: '#6b7280',
+                    padding: '0.5rem'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {createError && (
+                <div style={{
+                  background: 'linear-gradient(135deg, #fee2e2, #fecaca)',
+                  border: '1px solid #ef4444',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  marginBottom: '1.5rem',
+                  color: '#dc2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  ⚠️ {createError}
+                </div>
+              )}
+
+              <form onSubmit={createIntervention}>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    color: '#003061',
+                    marginBottom: '0.5rem'
+                  }}>
+                    📝 {t('interventions.title_field', 'Titre de l\'intervention')}
+                  </label>
+                  <input
+                    type="text"
+                    name="titre"
+                    value={formData.titre}
+                    onChange={handleInputChange}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      border: '2px solid rgba(0, 48, 97, 0.2)',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      background: 'rgba(255, 255, 255, 0.9)'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0078d4';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(0, 120, 212, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(0, 48, 97, 0.2)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    placeholder={t('interventions.title_placeholder', 'Ex: Réparation équipement réseau')}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    color: '#003061',
+                    marginBottom: '0.5rem'
+                  }}>
+                    📋 {t('interventions.description_field', 'Description')}
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    required
+                    rows={4}
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      border: '2px solid rgba(0, 48, 97, 0.2)',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      resize: 'vertical',
+                      minHeight: '100px'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0078d4';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(0, 120, 212, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(0, 48, 97, 0.2)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                    placeholder={t('interventions.description_placeholder', 'Décrivez le problème et les actions nécessaires...')}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '2rem' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    color: '#003061',
+                    marginBottom: '0.5rem'
+                  }}>
+                    ⚡ {t('interventions.priority_field', 'Priorité')}
+                  </label>
+                  <select
+                    name="priorite"
+                    value={formData.priorite}
+                    onChange={handleInputChange}
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      border: '2px solid rgba(0, 48, 97, 0.2)',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease',
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      cursor: 'pointer'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#0078d4';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(0, 120, 212, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(0, 48, 97, 0.2)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  >
+                    <option value="FAIBLE">🟢 {t('interventions.priority_low', 'Faible')}</option>
+                    <option value="NORMALE">🟡 {t('interventions.priority_normal', 'Normale')}</option>
+                    <option value="HAUTE">🟠 {t('interventions.priority_high', 'Haute')}</option>
+                    <option value="CRITIQUE">🔴 {t('interventions.priority_critical', 'Critique')}</option>
+                  </select>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  justifyContent: 'flex-end'
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setCreateError("");
+                      setFormData({ description: "", titre: "", priorite: "NORMALE" });
+                    }}
+                    style={{
+                      padding: '1rem 2rem',
+                      background: '#e5e7eb',
+                      color: '#374151',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#d1d5db';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = '#e5e7eb';
+                    }}
+                  >
+                    ❌ {t('interventions.cancel', 'Annuler')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createLoading}
+                    style={{
+                      padding: '1rem 2rem',
+                      background: createLoading 
+                        ? '#9ca3af' 
+                        : 'linear-gradient(135deg, #10b981, #059669)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      cursor: createLoading ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!createLoading) {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.4)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  >
+                    {createLoading ? (
+                      <>⏳ {t('interventions.creating', 'Création...')}</>
+                    ) : (
+                      <>✅ {t('interventions.create_button', 'Créer l\'intervention')}</>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

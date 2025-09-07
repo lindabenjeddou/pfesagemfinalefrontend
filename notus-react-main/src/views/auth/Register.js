@@ -614,7 +614,7 @@ export default function Register() {
                     marginBottom: 8,
                   }}
                 >
-                  📧 Adresse Email
+                  📧 {t('auth.email', 'Adresse Email')}
                 </label>
                 <input
                   type="email"
