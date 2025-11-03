@@ -1,634 +1,682 @@
-import React, { useState, useEffect } from 'react';
-import { useProjectContext } from '../../contexts/ProjectContext';
-import { useSecurity } from '../../contexts/SecurityContext';
-import { useNotifications } from '../Notifications/NotificationSystem';
+// ValidationInterventions.jsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-const TechnicianMobileApp = () => {
-  const { projects } = useProjectContext();
-  const { user, hasPermission, PERMISSIONS } = useSecurity();
-  const { addNotification } = useNotifications();
-  
-  const [currentLocation, setCurrentLocation] = useState(null);
-  const [interventions, setInterventions] = useState([]);
-  const [selectedIntervention, setSelectedIntervention] = useState(null);
-  const [activeTab, setActiveTab] = useState('planning');
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [offlineQueue, setOfflineQueue] = useState([]);
-  const [scannerActive, setScannerActive] = useState(false);
+/* ============================== Config API ============================== */
+// Mets l’URL de ton backend (avec context-path /PI)
+const BASE_URL = "http://localhost:8089/PI";
 
-  // Géolocalisation
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy
-          });
-        },
-        (error) => {
-          console.error('Erreur géolocalisation:', error);
-          addNotification('warning', '📍 Géolocalisation non disponible', {
-            subtitle: 'Certaines fonctionnalités seront limitées'
-          });
-        }
-      );
-    }
-  }, []);
+/** Évite les doublons de /PI dans l’URL finale */
+function apiUrl(path = "") {
+  const base = BASE_URL.replace(/\/+$/, "");
+  let p = String(path || "").replace(/^\/+/, "");
+  const ctx = base.split("/").filter(Boolean).pop(); // "PI"
+  if (ctx && new RegExp(`^${ctx}/`, "i").test(p)) p = p.replace(new RegExp(`^${ctx}/`, "i"), "");
+  return `${base}/${p}`;
+}
 
-  // Détection online/offline
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      syncOfflineData();
-    };
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  // Charger les interventions du technicien
-  useEffect(() => {
-    fetchTechnicianInterventions();
-  }, [user]);
-
-  const fetchTechnicianInterventions = async () => {
-    try {
-      const response = await fetch(`http://localhost:8089/PI/PI/demandes/recuperer/all`);
-      if (response.ok) {
-        const data = await response.json();
-        const technicianInterventions = data.filter(int => 
-          int.demandeurId === user?.id || int.assignedTechnicianId === user?.id
-        ).map(int => ({
-          id: int.id,
-          title: int.description || 'Intervention',
-          type: int.type || 'CURATIVE',
-          status: int.statut || 'PLANIFIE',
-          priority: int.priority || 'NORMAL',
-          scheduledDate: new Date(int.dateCreation),
-          location: int.location || 'Site Sagemcom',
-          equipment: int.equipment || 'Équipement non spécifié',
-          estimatedDuration: int.estimatedDuration || 120, // minutes
-          requiredPDR: int.requiredPDR || [],
-          coordinates: int.coordinates || { lat: 36.8065, lng: 10.1815 } // Tunis par défaut
-        }));
-        
-        setInterventions(technicianInterventions);
-      }
-    } catch (error) {
-      if (!isOnline) {
-        // Mode offline - charger depuis le cache local
-        const cachedData = localStorage.getItem('cached_interventions');
-        if (cachedData) {
-          setInterventions(JSON.parse(cachedData));
-        }
-      }
-    }
+/* ============================== fetch helper ============================ */
+async function fetchJson(path, { method = "GET", body, headers = {} } = {}) {
+  const url = apiUrl(path);
+  const h = {
+    Accept: "application/json",
+    ...(body ? { "Content-Type": "application/json" } : {}),
+    ...headers,
   };
+  const res = await fetch(url, { method, headers: h, body: body ? JSON.stringify(body) : undefined });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    const err = new Error(txt || res.statusText);
+    err.status = res.status;
+    err.url = url;
+    throw err;
+  }
+  const ct = res.headers.get("content-type") || "";
+  return ct.includes("application/json") ? res.json() : res.text();
+}
 
-  // Synchroniser les données hors ligne
-  const syncOfflineData = async () => {
-    if (offlineQueue.length > 0) {
-      addNotification('info', '🔄 Synchronisation en cours...', {
-        subtitle: `${offlineQueue.length} actions à synchroniser`
-      });
-
-      for (const action of offlineQueue) {
-        try {
-          await executeAction(action);
-        } catch (error) {
-          console.error('Erreur sync:', error);
-        }
-      }
-      
-      setOfflineQueue([]);
-      addNotification('success', '✅ Synchronisation terminée!');
-    }
-  };
-
-  const executeAction = async (action) => {
-    switch (action.type) {
-      case 'UPDATE_STATUS':
-        await fetch(`http://localhost:8089/PI/PI/demandes/update/${action.interventionId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ statut: action.status === 'TERMINE' ? 'TERMINEE' : action.status })
-        });
-        break;
-      case 'ADD_REPORT':
-        await fetch(`http://localhost:8089/PI/PI/reports/add`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(action.report)
-        });
-        break;
-      default:
-        break;
-    }
-  };
-
-  // Calculer la distance entre deux points
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Rayon de la Terre en km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
-  // Scanner QR/RFID (simulation)
-  const startScanner = () => {
-    setScannerActive(true);
-    
-    // Simulation du scan
-    setTimeout(() => {
-      const scannedEquipment = {
-        id: 'EQ-' + Math.random().toString(36).substr(2, 9),
-        name: 'Compresseur Atlas Copco GA22',
-        location: 'Atelier Mécanique - Zone A',
-        lastMaintenance: '2024-01-15',
-        nextMaintenance: '2024-04-15'
-      };
-      
-      setScannerActive(false);
-      addNotification('success', '📱 Équipement scanné!', {
-        subtitle: scannedEquipment.name,
-        duration: 5000
-      });
-      
-      // Pré-remplir les informations d'intervention
-      if (selectedIntervention) {
-        setSelectedIntervention({
-          ...selectedIntervention,
-          scannedEquipment
-        });
-      }
-    }, 3000);
-  };
-
-  // Mettre à jour le statut d'intervention
-  const updateInterventionStatus = (interventionId, newStatus) => {
-    const action = {
-      type: 'UPDATE_STATUS',
-      interventionId,
-      status: newStatus,
-      timestamp: new Date().toISOString()
-    };
-
-    if (isOnline) {
-      executeAction(action);
-    } else {
-      setOfflineQueue([...offlineQueue, action]);
-      addNotification('info', '📴 Action mise en file d\'attente', {
-        subtitle: 'Sera synchronisée à la reconnexion'
-      });
-    }
-
-    // Mettre à jour localement
-    setInterventions(interventions.map(int => 
-      int.id === interventionId ? { ...int, status: newStatus } : int
-    ));
-  };
-
-  // Composant Planning
-  const PlanningTab = () => (
-    <div style={{ padding: '1rem' }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1rem'
-      }}>
-        <h3 style={{ margin: 0, color: '#003061' }}>📅 Mon Planning</h3>
-        <div style={{
-          padding: '0.5rem 1rem',
-          borderRadius: '20px',
-          fontSize: '0.875rem',
-          fontWeight: '600',
-          background: isOnline ? '#dcfce7' : '#fef3c7',
-          color: isOnline ? '#166534' : '#92400e'
-        }}>
-          {isOnline ? '🟢 En ligne' : '🟡 Hors ligne'}
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        {interventions.map(intervention => {
-          const distance = currentLocation ? 
-            calculateDistance(
-              currentLocation.latitude, currentLocation.longitude,
-              intervention.coordinates.lat, intervention.coordinates.lng
-            ) : null;
-
-          return (
-            <div
-              key={intervention.id}
-              onClick={() => setSelectedIntervention(intervention)}
-              style={{
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '12px',
-                padding: '1rem',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    {intervention.type === 'CURATIVE' ? '🔧' : '🛡️'} {intervention.title}
-                  </div>
-                  <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                    📍 {intervention.location}
-                  </div>
-                </div>
-                
-                <div style={{
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: '12px',
-                  fontSize: '0.75rem',
-                  fontWeight: '600',
-                  background: intervention.status === 'TERMINE' ? '#dcfce7' : 
-                             intervention.status === 'EN_COURS' ? '#fef3c7' : '#dbeafe',
-                  color: intervention.status === 'TERMINE' ? '#166534' :
-                         intervention.status === 'EN_COURS' ? '#92400e' : '#1e40af'
-                }}>
-                  {intervention.status === 'TERMINE' ? '✅ Terminé' :
-                   intervention.status === 'EN_COURS' ? '⏳ En cours' : '📋 Planifié'}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem', color: '#6b7280' }}>
-                <div>
-                  🕐 {intervention.scheduledDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                  <span style={{ margin: '0 0.5rem' }}>•</span>
-                  ⏱️ {intervention.estimatedDuration}min
-                </div>
-                
-                {distance && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    📍 {distance.toFixed(1)} km
-                  </div>
-                )}
-              </div>
-
-              {intervention.priority === 'URGENT' && (
-                <div style={{
-                  marginTop: '0.5rem',
-                  padding: '0.25rem 0.75rem',
-                  background: '#fee2e2',
-                  color: '#dc2626',
-                  borderRadius: '6px',
-                  fontSize: '0.75rem',
-                  fontWeight: '600'
-                }}>
-                  🚨 URGENT
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  // Composant Intervention Détail
-  const InterventionDetail = () => {
-    if (!selectedIntervention) return null;
-
-    return (
-      <div style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-          <button
-            onClick={() => setSelectedIntervention(null)}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '1.5rem',
-              cursor: 'pointer'
-            }}
-          >
-            ←
-          </button>
-          <h3 style={{ margin: 0, color: '#003061' }}>
-            {selectedIntervention.type === 'CURATIVE' ? '🔧' : '🛡️'} Détails Intervention
-          </h3>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          padding: '1.5rem',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          marginBottom: '1rem'
-        }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <div style={{ fontWeight: '600', fontSize: '1.1rem', color: '#374151', marginBottom: '0.5rem' }}>
-              {selectedIntervention.title}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-              📍 {selectedIntervention.location}
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-            <div>
-              <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Date & Heure
-              </div>
-              <div style={{ fontWeight: '600', color: '#374151' }}>
-                {selectedIntervention.scheduledDate.toLocaleDateString('fr-FR')} à{' '}
-                {selectedIntervention.scheduledDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-              </div>
-            </div>
-            
-            <div>
-              <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Durée Estimée
-              </div>
-              <div style={{ fontWeight: '600', color: '#374151' }}>
-                ⏱️ {selectedIntervention.estimatedDuration} minutes
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '1rem' }}>
-            <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-              Équipement
-            </div>
-            <div style={{ fontWeight: '600', color: '#374151' }}>
-              {selectedIntervention.scannedEquipment?.name || selectedIntervention.equipment}
-            </div>
-          </div>
-
-          {/* Actions rapides */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1rem' }}>
-            <button
-              onClick={() => updateInterventionStatus(selectedIntervention.id, 'EN_COURS')}
-              disabled={selectedIntervention.status === 'EN_COURS' || selectedIntervention.status === 'TERMINE'}
-              style={{
-                padding: '0.75rem',
-                background: selectedIntervention.status === 'EN_COURS' ? '#9ca3af' : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: selectedIntervention.status === 'EN_COURS' ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {selectedIntervention.status === 'EN_COURS' ? '⏳ En cours' : '▶️ Démarrer'}
-            </button>
-            
-            <button
-              onClick={() => updateInterventionStatus(selectedIntervention.id, 'TERMINE')}
-              disabled={selectedIntervention.status !== 'EN_COURS'}
-              style={{
-                padding: '0.75rem',
-                background: selectedIntervention.status === 'TERMINE' ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: selectedIntervention.status !== 'EN_COURS' ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {selectedIntervention.status === 'TERMINE' ? '✅ Terminé' : '🏁 Terminer'}
-            </button>
-          </div>
-
-          {/* Scanner QR/RFID */}
-          <button
-            onClick={startScanner}
-            disabled={scannerActive}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              background: scannerActive ? '#9ca3af' : 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: '600',
-              cursor: scannerActive ? 'not-allowed' : 'pointer',
-              marginBottom: '1rem'
-            }}
-          >
-            {scannerActive ? '📱 Scan en cours...' : '📱 Scanner Équipement'}
-          </button>
-
-          {/* Navigation */}
-          {currentLocation && (
-            <button
-              onClick={() => {
-                const url = `https://www.google.com/maps/dir/${currentLocation.latitude},${currentLocation.longitude}/${selectedIntervention.coordinates.lat},${selectedIntervention.coordinates.lng}`;
-                window.open(url, '_blank');
-              }}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              🗺️ Navigation GPS
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Composant PDR
-  const PDRTab = () => (
-    <div style={{ padding: '1rem' }}>
-      <h3 style={{ margin: '0 0 1rem 0', color: '#003061' }}>📦 Commande PDR</h3>
-      
-      <div style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '1.5rem',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <input
-            type="text"
-            placeholder="🔍 Rechercher une pièce..."
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '8px',
-              fontSize: '1rem'
-            }}
-          />
-        </div>
-
-        <div style={{ display: 'grid', gap: '0.5rem' }}>
-          {[
-            { name: 'Roulement SKF 6205', ref: 'PDR-001', stock: 5, urgent: true },
-            { name: 'Courroie HTD 8M', ref: 'PDR-002', stock: 12, urgent: false },
-            { name: 'Capteur proximité', ref: 'PDR-003', stock: 2, urgent: true }
-          ].map((pdr, index) => (
-            <div key={index} style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '0.75rem',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px'
-            }}>
-              <div>
-                <div style={{ fontWeight: '600', color: '#374151' }}>
-                  {pdr.name}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                  Réf: {pdr.ref} • Stock: {pdr.stock}
-                </div>
-              </div>
-              
-              <button style={{
-                padding: '0.5rem 1rem',
-                background: pdr.urgent ? '#ef4444' : '#10b981',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '0.875rem',
-                fontWeight: '600'
-              }}>
-                {pdr.urgent ? '🚨 Urgent' : '➕ Commander'}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div style={{
-      maxWidth: '400px',
-      margin: '0 auto',
-      background: '#f8fafc',
-      minHeight: '100vh',
-      position: 'relative'
-    }}>
-      {/* Header Mobile */}
-      <div style={{
-        background: 'linear-gradient(135deg, #003061 0%, #0078d4 100%)',
-        color: 'white',
-        padding: '1rem',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontWeight: '600', fontSize: '1.1rem' }}>
-              👋 Bonjour {user?.firstName}
-            </div>
-            <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>
-              {user?.role}
-            </div>
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {currentLocation && (
-              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>
-                📍 GPS
-              </div>
-            )}
-            <div style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: isOnline ? '#10b981' : '#f59e0b'
-            }} />
-          </div>
-        </div>
-      </div>
-
-      {/* Contenu principal */}
-      {selectedIntervention ? (
-        <InterventionDetail />
-      ) : (
-        <>
-          {activeTab === 'planning' && <PlanningTab />}
-          {activeTab === 'pdr' && <PDRTab />}
-        </>
-      )}
-
-      {/* Navigation Bottom */}
-      {!selectedIntervention && (
-        <div style={{
-          position: 'fixed',
-          bottom: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '100%',
-          maxWidth: '400px',
-          background: 'white',
-          borderTop: '1px solid #e5e7eb',
-          display: 'flex',
-          justifyContent: 'space-around',
-          padding: '0.75rem'
-        }}>
-          <button
-            onClick={() => setActiveTab('planning')}
-            style={{
-              flex: 1,
-              padding: '0.75rem',
-              background: activeTab === 'planning' ? '#003061' : 'transparent',
-              color: activeTab === 'planning' ? 'white' : '#6b7280',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            📅 Planning
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('pdr')}
-            style={{
-              flex: 1,
-              padding: '0.75rem',
-              background: activeTab === 'pdr' ? '#003061' : 'transparent',
-              color: activeTab === 'pdr' ? 'white' : '#6b7280',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: '600',
-              cursor: 'pointer'
-            }}
-          >
-            📦 PDR
-          </button>
-        </div>
-      )}
-    </div>
-  );
+/* ============================== Date utils ============================= */
+const asDate = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  const d = Number.isFinite(n) ? new Date(n) : new Date(String(value));
+  return isNaN(d.getTime()) ? null : d;
+};
+const fmtDateTime = (v) => {
+  const d = asDate(v);
+  return d ? d.toLocaleString("fr-FR") : "—";
 };
 
-export default TechnicianMobileApp;
+/* ====================== Composant AdvancedPagination ==================== */
+function AdvancedPagination({
+  data = [],
+  searchFields = [],
+  searchPlaceholder = "Rechercher...",
+  sortFields = [],
+  filterFields = [],
+  itemsPerPageOptions = [10, 20, 50],
+  defaultItemsPerPage = 10,
+  renderItem,
+}) {
+  const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState(sortFields?.[0]?.key || "");
+  const [sortDir, setSortDir] = useState("desc");
+  const [filters, setFilters] = useState({});
+  const [perPage, setPerPage] = useState(defaultItemsPerPage);
+  const [page, setPage] = useState(1);
+
+  const onChangeFilter = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value || "" }));
+    setPage(1);
+  };
+
+  const filtered = useMemo(() => {
+    let rows = [...data];
+
+    // Recherche plein-texte
+    if (query.trim() && searchFields.length > 0) {
+      const q = query.trim().toLowerCase();
+      rows = rows.filter((row) =>
+        searchFields.some((f) => String(row?.[f] ?? "").toLowerCase().includes(q))
+      );
+    }
+
+    // Filtres exacts
+    filterFields.forEach((ff) => {
+      const val = filters[ff.key];
+      if (val && String(val).length > 0) {
+        rows = rows.filter((row) => String(row?.[ff.key] ?? "") === String(val));
+      }
+    });
+
+    // Tri
+    if (sortKey) {
+      rows.sort((a, b) => {
+        const av = a?.[sortKey];
+        const bv = b?.[sortKey];
+        const toNum = (v) => {
+          if (v === null || v === undefined) return Number.NEGATIVE_INFINITY;
+          const n = Number(v);
+          return Number.isFinite(n) ? n : null;
+        };
+        const an = toNum(av);
+        const bn = toNum(bv);
+        let cmp = 0;
+        if (an !== null && bn !== null) cmp = an - bn;
+        else cmp = String(av ?? "").localeCompare(String(bv ?? ""), "fr", { sensitivity: "base" });
+        return sortDir === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return rows;
+  }, [data, query, searchFields, filterFields, filters, sortKey, sortDir]);
+
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const current = Math.min(page, totalPages);
+  const pageRows = filtered.slice((current - 1) * perPage, (current - 1) * perPage + perPage);
+
+  const goto = (p) => setPage(Math.max(1, Math.min(totalPages, p)));
+
+  const btn = (disabled) => ({
+    padding: "8px 10px",
+    border: "1px solid #e5e7eb",
+    background: "white",
+    borderRadius: 8,
+    cursor: disabled ? "not-allowed" : "pointer",
+    fontSize: 14,
+    opacity: disabled ? 0.5 : 1,
+  });
+
+  return (
+    <div>
+      {/* Toolbar */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto auto auto",
+          gap: 12,
+          alignItems: "center",
+          marginBottom: 12,
+        }}
+      >
+        <input
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPage(1);
+          }}
+          placeholder={searchPlaceholder}
+          style={{
+            width: "100%",
+            padding: "10px 12px",
+            border: "1px solid #e5e7eb",
+            borderRadius: 10,
+            fontSize: 14,
+            background: "white",
+          }}
+        />
+
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {filterFields.map((ff) => (
+            <select
+              key={ff.key}
+              value={filters[ff.key] || ""}
+              onChange={(e) => onChangeFilter(ff.key, e.target.value)}
+              style={{
+                padding: "10px 12px",
+                border: "1px solid #e5e7eb",
+                borderRadius: 10,
+                fontSize: 14,
+                background: "white",
+              }}
+            >
+              <option value="">{ff.label}</option>
+              {ff.options?.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          ))}
+
+          {sortFields.length > 0 && (
+            <>
+              <select
+                value={sortKey}
+                onChange={(e) => {
+                  setSortKey(e.target.value);
+                  setPage(1);
+                }}
+                style={{
+                  padding: "10px 12px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 10,
+                  fontSize: 14,
+                  background: "white",
+                }}
+              >
+                {sortFields.map((sf) => (
+                  <option key={sf.key} value={sf.key}>
+                    Trier: {sf.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={sortDir}
+                onChange={(e) => setSortDir(e.target.value)}
+                style={{
+                  padding: "10px 12px",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 10,
+                  fontSize: 14,
+                  background: "white",
+                }}
+              >
+                <option value="asc">⬆️ Asc</option>
+                <option value="desc">⬇️ Desc</option>
+              </select>
+            </>
+          )}
+
+          <select
+            value={perPage}
+            onChange={(e) => {
+              setPerPage(Number(e.target.value));
+              setPage(1);
+            }}
+            style={{
+              padding: "10px 12px",
+              border: "1px solid #e5e7eb",
+              borderRadius: 10,
+              fontSize: 14,
+              background: "white",
+            }}
+          >
+            {itemsPerPageOptions.map((n) => (
+              <option key={n} value={n}>
+                {n}/page
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Résultats */}
+      <div>
+        {pageRows.length === 0 ? (
+          <div style={{ color: "#6b7280", textAlign: "center", padding: "1rem" }}>
+            Aucun résultat
+          </div>
+        ) : (
+          pageRows.map((row) => renderItem(row))
+        )}
+      </div>
+
+      {/* Pagination */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: 12,
+          flexWrap: "wrap",
+        }}
+      >
+        <button onClick={() => goto(1)} style={btn(current === 1)} disabled={current === 1}>
+          ⏮️
+        </button>
+        <button onClick={() => goto(current - 1)} style={btn(current === 1)} disabled={current === 1}>
+          ◀️
+        </button>
+        <span style={{ fontSize: 14, color: "#374151" }}>
+          Page {current} / {totalPages} — {filtered.length} résultat(s)
+        </span>
+        <button
+          onClick={() => goto(current + 1)}
+          style={btn(current === totalPages)}
+          disabled={current === totalPages}
+        >
+          ▶️
+        </button>
+        <button
+          onClick={() => goto(totalPages)}
+          style={btn(current === totalPages)}
+          disabled={current === totalPages}
+        >
+          ⏭️
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================== Page =================================== */
+export default function ValidationInterventions() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  const fetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    load();
+  }, []);
+
+  async function load() {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await fetchJson("demandes/recuperer/all");
+      setItems(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e);
+      setError(
+        e?.status === 404
+          ? "Ressource introuvable (404). Vérifie l’URL /PI/demandes/recuperer/all."
+          : "Impossible de charger les interventions."
+      );
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function confirmer(id) {
+    if (!window.confirm("Confirmer cette intervention ?")) return;
+    try {
+      setMessage("");
+      const updated = await fetchJson(`demandes/confirmer/${id}`, { method: "PUT" });
+      setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...updated } : it)));
+      setMessage("✅ Intervention confirmée");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (e) {
+      console.error(e);
+      setMessage("❌ Erreur lors de la confirmation.");
+      setTimeout(() => setMessage(""), 4000);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "50vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#6b7280",
+        }}
+      >
+        ⏳ Chargement des interventions...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        style={{
+          minHeight: "50vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ fontSize: 42, marginBottom: 10 }}>⚠️</div>
+        <div style={{ color: "#dc2626", fontWeight: 700, marginBottom: 8 }}>
+          Erreur de chargement
+        </div>
+        <div style={{ color: "#6b7280", marginBottom: 16 }}>{error}</div>
+        <button
+          onClick={load}
+          style={{
+            padding: "10px 16px",
+            background: "#2563eb",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            cursor: "pointer",
+          }}
+        >
+          🔄 Réessayer
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg,#f1f5f9,#e2e8f0,#cbd5e1)",
+        padding: "2rem",
+      }}
+    >
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* Header */}
+        <div
+          style={{
+            background: "linear-gradient(135deg,#003061,#0078d4)",
+            borderRadius: 24,
+            padding: "2rem",
+            color: "white",
+            textAlign: "center",
+            marginBottom: "2rem",
+          }}
+        >
+          <h1 style={{ fontSize: "2rem", margin: 0 }}>🛡️ Validation des Interventions</h1>
+          <div style={{ opacity: 0.9, marginTop: 6 }}>
+            Confirmez les demandes d’intervention (API Swagger OK)
+          </div>
+        </div>
+
+        {message && (
+          <div
+            style={{
+              background: message.includes("✅")
+                ? "linear-gradient(135deg,#d1fae5,#a7f3d0)"
+                : "linear-gradient(135deg,#fee2e2,#fecaca)",
+              color: message.includes("✅") ? "#065f46" : "#dc2626",
+              padding: "0.75rem 1rem",
+              borderRadius: 12,
+              marginBottom: "1rem",
+              textAlign: "center",
+              fontWeight: 600,
+            }}
+          >
+            {message}
+          </div>
+        )}
+
+        <div
+          style={{
+            background: "rgba(255,255,255,0.95)",
+            borderRadius: 16,
+            padding: "1.5rem",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+          }}
+        >
+          <h3 style={{ marginTop: 0, marginBottom: "1rem", color: "#374151" }}>
+            📋 Liste des interventions ({items.length})
+          </h3>
+
+          <AdvancedPagination
+            data={items}
+            itemsPerPageOptions={[5, 10, 20, 50]}
+            defaultItemsPerPage={10}
+            searchPlaceholder="Rechercher description / type / priorité / statut..."
+            searchFields={["description", "typeDemande", "priorite", "statut"]}
+            sortFields={[
+              { key: "dateDemande", label: "Date de demande" },
+              { key: "dateCreation", label: "Date de création" },
+              { key: "dateValidation", label: "Date de validation" },
+              { key: "description", label: "Description" },
+            ]}
+            filterFields={[
+              {
+                key: "statut",
+                label: "Statut",
+                type: "select",
+                options: [
+                  { value: "EN_ATTENTE", label: "⏳ En attente" },
+                  { value: "EN_COURS", label: "🔄 En cours" },
+                  { value: "REFUSEE", label: "❌ Refusée" },
+                  { value: "TERMINEE", label: "✅ Terminée" },
+                ],
+              },
+              {
+                key: "typeDemande",
+                label: "Type",
+                type: "select",
+                options: [
+                  { value: "CURATIVE", label: "🔧 Curative" },
+                  { value: "PREVENTIVE", label: "🛠️ Préventive" },
+                ],
+              },
+              {
+                key: "priorite",
+                label: "Priorité",
+                type: "select",
+                options: [
+                  { value: "NORMALE", label: "Normale" },
+                  { value: "MOYENNE", label: "Moyenne" },
+                  { value: "HAUTE", label: "Haute" },
+                  { value: "URGENTE", label: "Urgente" },
+                ],
+              },
+              {
+                key: "confirmation",
+                label: "Confirmation",
+                type: "select",
+                options: [
+                  { value: "1", label: "Confirmée" },
+                  { value: "0", label: "Non confirmée" },
+                ],
+              },
+            ]}
+            renderItem={(it) => (
+              <div
+                key={it.id}
+                style={{
+                  background: "white",
+                  borderRadius: 12,
+                  padding: "1rem",
+                  marginBottom: "0.75rem",
+                  border: "1px solid #e5e7eb",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 16,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ minWidth: 260 }}>
+                    <div style={{ color: "#6b7280", fontSize: 13, marginBottom: 6 }}>
+                      📅 Demande : {fmtDateTime(it.dateDemande)}
+                    </div>
+                    <div style={{ fontWeight: 600, color: "#374151", marginBottom: 8 }}>
+                      {it.description || "—"}
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <span
+                        style={{
+                          padding: "2px 10px",
+                          borderRadius: 999,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          background:
+                            it.typeDemande === "CURATIVE" ? "#fee2e2" : "#dcfce7",
+                          color:
+                            it.typeDemande === "CURATIVE" ? "#b91c1c" : "#166534",
+                        }}
+                      >
+                        {it.typeDemande === "CURATIVE"
+                          ? "🔧 Curative"
+                          : "🛠️ Préventive"}
+                      </span>
+
+                      <span
+                        style={{
+                          padding: "2px 10px",
+                          borderRadius: 999,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          background:
+                            it.priorite === "HAUTE"
+                              ? "#fee2e2"
+                              : it.priorite === "MOYENNE"
+                              ? "#fef3c7"
+                              : it.priorite === "URGENTE"
+                              ? "#fde68a"
+                              : "#e0f2fe",
+                          color:
+                            it.priorite === "HAUTE"
+                              ? "#b91c1c"
+                              : it.priorite === "MOYENNE"
+                              ? "#92400e"
+                              : it.priorite === "URGENTE"
+                              ? "#92400e"
+                              : "#1d4ed8",
+                        }}
+                      >
+                        📊 {it.priorite || "NORMALE"}
+                      </span>
+
+                      {typeof it.urgence === "boolean" && (
+                        <span
+                          style={{
+                            padding: "2px 10px",
+                            borderRadius: 999,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            background: it.urgence ? "#fde68a" : "#e5e7eb",
+                            color: it.urgence ? "#92400e" : "#374151",
+                          }}
+                        >
+                          {it.urgence ? "⚡ Urgent" : "⏱️ Non urgent"}
+                        </span>
+                      )}
+
+                      <span
+                        style={{
+                          padding: "2px 10px",
+                          borderRadius: 999,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          background: it.confirmation === 1 ? "#dcfce7" : "#e5e7eb",
+                          color: it.confirmation === 1 ? "#166534" : "#374151",
+                        }}
+                      >
+                        {it.confirmation === 1 ? "🔒 Confirmée" : "🔓 Non confirmée"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: "right", minWidth: 260 }}>
+                    <div
+                      style={{
+                        display: "inline-block",
+                        padding: "6px 12px",
+                        borderRadius: 999,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        background:
+                          it.statut === "EN_ATTENTE"
+                            ? "#fef3c7"
+                            : it.statut === "EN_COURS"
+                            ? "#dbeafe"
+                            : it.statut === "REFUSEE"
+                            ? "#fee2e2"
+                            : "#dcfce7",
+                        color:
+                          it.statut === "EN_ATTENTE"
+                            ? "#a16207"
+                            : it.statut === "EN_COURS"
+                            ? "#1d4ed8"
+                            : it.statut === "REFUSEE"
+                            ? "#b91c1c"
+                            : "#166534",
+                        marginBottom: 8,
+                      }}
+                    >
+                      {it.statut === "EN_ATTENTE"
+                        ? "⏳ EN ATTENTE"
+                        : it.statut === "EN_COURS"
+                        ? "🔄 EN COURS"
+                        : it.statut === "REFUSEE"
+                        ? "❌ REFUSÉE"
+                        : "✅ TERMINÉE"}
+                    </div>
+
+                    <div style={{ color: "#6b7280", fontSize: 12 }}>
+                      Créée : {fmtDateTime(it.dateCreation)}
+                      <br />
+                      Validée : {fmtDateTime(it.dateValidation)}
+                      {it.prochainRDV ? (
+                        <>
+                          <br />
+                          Prochain RDV : {fmtDateTime(it.prochainRDV)}
+                        </>
+                      ) : null}
+                    </div>
+
+                    {it.statut === "EN_ATTENTE" && (
+                      <div style={{ marginTop: 10 }}>
+                        <button
+                          onClick={() => confirmer(it.id)}
+                          style={{
+                            padding: "8px 12px",
+                            background: "linear-gradient(135deg,#10b981,#059669)",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 8,
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            fontSize: 13,
+                          }}
+                        >
+                          ✅ Confirmer
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

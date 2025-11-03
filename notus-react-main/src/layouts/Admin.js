@@ -17,9 +17,14 @@ import Tables from "views/admin/Tables.js";
 import Component from "views/admin/Component.js";
 import AddIntervention from "views/admin/AddIntervention.js";
 import Interventions from "views/admin/interventions.js";
-import Bont from "views/admin/bont.js";
+import ValidationInterventions from "views/admin/ValidationInterventions.js";
 import Listebont from "views/admin/listebont.js";
-import Projet from "views/admin/Projet.js";
+// Pages modulaires séparées - Sans onglets
+import CreateProjectPage from "views/admin/projet/CreateProjectPage.js";
+import ManageProjectsPage from "views/admin/projet/ManageProjectsPage.js";
+import SubProjectsPage from "views/admin/projet/SubProjectsPage.js";
+import ConfirmSubProjectsPage from "views/admin/projet/ConfirmSubProjectsPage.js";
+import AnalyticsProjectPage from "views/admin/projet/AnalyticsProjectPage.js";
 import SousProjet from "views/admin/SousProjet.js";
 import MagasinierDashboard from "views/admin/MagasinierDashboard.js";
 import Profile from "views/admin/Profile.js";
@@ -40,6 +45,13 @@ import AIAssistant from "components/AI/AIAssistant.js";
 import ProtectedRoute from "components/Security/ProtectedRoute.js";
 import IntegrationTest from "components/Testing/IntegrationTest.js";
 import TechnicianSchedule from "views/TechnicianSchedule.js";
+import CreateBonTravail from "views/admin/CreateBonTravail.js";
+import TechnicienBonsTravail from "views/admin/TechnicienBonsTravail.js";
+import AssignIntervention from "views/admin/AssignIntervention.js";
+import HistoriqueTesteur from "views/admin/HistoriqueTesteur.js";
+import Testeurs from "views/admin/Testeurs.js";
+import KPIDashboard from "views/admin/KPIDashboard.js";
+import ProjectDashboard from "views/admin/ProjectDashboard.js";
 export default function Admin() {
   return (
     <ToastProvider>
@@ -55,16 +67,82 @@ export default function Admin() {
             <Route path="/admin/component" exact component={Component} />
             <Route path="/admin/AddIntervention" exact component={AddIntervention} />
             <Route path="/admin/interventions" exact component={Interventions} />
+            <Route path="/admin/validation-interventions" exact component={ValidationInterventions} />
             <Route path="/admin/component-orders" exact component={ComponentOrderValidation} />
             <Route path="/admin/validation-commandes" exact component={ComponentOrderValidationModern} />
-            <Route path="/admin/bont" exact component={Bont} />
             <Route path="/admin/listebont" exact component={Listebont} />
-            <Route path="/admin/projet" exact component={Projet} />
+            {/* Pages modulaires séparées - Protégées pour Chef de Projet et Admin uniquement */}
+            <Route path="/admin/projet/create" exact render={() => (
+              <ProtectedRoute 
+                requiredPermission="create_project"
+                fallbackMessage="Accès réservé aux Chefs de Projet et Administrateurs"
+              >
+                <CreateProjectPage />
+              </ProtectedRoute>
+            )} />
+            
+            <Route path="/admin/projet/manage" exact render={() => (
+              <ProtectedRoute 
+                requiredPermission="view_project"
+                fallbackMessage="Accès réservé aux Chefs de Projet et Administrateurs"
+              >
+                <ManageProjectsPage />
+              </ProtectedRoute>
+            )} />
+            
+            <Route path="/admin/projet/subprojects" exact render={() => (
+              <ProtectedRoute 
+                requiredPermission="create_subproject"
+                fallbackMessage="Accès réservé aux Chefs de Projet et Administrateurs"
+              >
+                <SubProjectsPage />
+              </ProtectedRoute>
+            )} />
+            
+            <Route path="/admin/projet/confirm" exact render={() => (
+              <ProtectedRoute 
+                requiredPermission="confirm_subproject"
+                fallbackMessage="Accès réservé aux Chefs de Projet et Administrateurs"
+              >
+                <ConfirmSubProjectsPage />
+              </ProtectedRoute>
+            )} />
+            
+            <Route path="/admin/projet/analytics" exact render={() => (
+              <ProtectedRoute 
+                requiredPermission="view_analytics"
+                fallbackMessage="Accès réservé aux Chefs de Projet et Administrateurs"
+              >
+                <AnalyticsProjectPage />
+              </ProtectedRoute>
+            )} />
+            
+            {/* Redirection par défaut vers la page de création (aussi protégée) */}
+            <Route path="/admin/projet" exact render={() => (
+              <ProtectedRoute 
+                requiredPermission="view_project"
+                fallbackMessage="Accès réservé aux Chefs de Projet et Administrateurs"
+              >
+                <CreateProjectPage />
+              </ProtectedRoute>
+            )} />
             <Route path="/admin/sousprojet" exact component={SousProjet} />
             <Route path="/admin/magasinier" exact component={MagasinierDashboard} />
             <Route path="/admin/profile" exact component={Profile} />
             <Route path="/admin/technician-schedule" exact component={TechnicianSchedule} />
-            
+            <Route path="/admin/create-bon-travail" exact component={CreateBonTravail} />
+            <Route
+            path="/admin/technicien-bons-travail"
+            component={TechnicienBonsTravail}
+          />
+          <Route
+            path="/admin/assign-intervention"
+            component={AssignIntervention}
+          />
+            <Route path="/admin/historique-testeur" exact component={HistoriqueTesteur} />
+            <Route path="/admin/testeurs" exact component={Testeurs} />
+            <Route path="/admin/kpi-dashboard" exact component={KPIDashboard} />
+            <Route path="/admin/project-dashboard" exact component={ProjectDashboard} />
             {/* Advanced Modules Routes - Protected */}
             <Route path="/admin/predictive-kpi" exact render={() => (
               <ProtectedRoute 

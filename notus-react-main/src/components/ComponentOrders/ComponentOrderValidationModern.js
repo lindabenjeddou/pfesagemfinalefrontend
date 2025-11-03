@@ -12,6 +12,8 @@ const ComponentOrderValidation = () => {
   const [stats, setStats] = useState({ total: 0, pending: 0, confirmed: 0, rejected: 0 });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [processingOrders, setProcessingOrders] = useState(new Set());
 
   // Fonction pour charger les commandes depuis l'API
   const loadOrders = async () => {
@@ -19,9 +21,15 @@ const ComponentOrderValidation = () => {
     setError(null);
     
     try {
-      const [sousProjetResponse, componentResponse] = await Promise.all([
+      const [sousProjetResponse, componentResponse, bonsTravailResponse] = await Promise.all([
         fetch('http://localhost:8089/PI/PI/sousprojets/'),
-        fetch('http://localhost:8089/PI/PI/component/all')
+        fetch('http://localhost:8089/PI/PI/component/all'),
+        fetch('http://localhost:8089/PI/pi/bons', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('sagemcom_token') || localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        })
       ]);
 
       if (!sousProjetResponse.ok || !componentResponse.ok) {
@@ -30,6 +38,14 @@ const ComponentOrderValidation = () => {
 
       const sousProjets = await sousProjetResponse.json();
       const components = await componentResponse.json();
+      
+      // Charger les bons de travail (peut échouer si pas authentifié)
+      let bonsTravail = [];
+      if (bonsTravailResponse.ok) {
+        const bonsTravailData = await bonsTravailResponse.json();
+        bonsTravail = Array.isArray(bonsTravailData) ? bonsTravailData : 
+                      Array.isArray(bonsTravailData.content) ? bonsTravailData.content : [];
+      }
 
       // Créer un index des composants
       const componentIndex = {};
@@ -43,6 +59,7 @@ const ComponentOrderValidation = () => {
       const transformedOrders = [];
       let orderIdCounter = 1;
 
+      // 1. Ajouter les commandes des sous-projets
       sousProjets.forEach(sousProjet => {
         if (sousProjet.components && sousProjet.components.length > 0) {
           sousProjet.components.forEach(componentRef => {
@@ -50,26 +67,66 @@ const ComponentOrderValidation = () => {
               TRART_ARTICLE: componentRef,
               TRART_DESIGNATION: `Composant ${componentRef}`,
               TRART_QUANTITE: 1,
-              Prix: 0
+              prix: 0
             };
 
             const order = {
               id: orderIdCounter++,
+              source: 'Sous-Projet',
               sousProjetName: sousProjet.sousProjetName,
               projectName: sousProjet.project?.projectName || 'Projet inconnu',
               component: {
                 reference: componentDetails.TRART_ARTICLE,
                 name: componentDetails.TRART_DESIGNATION,
                 quantity: componentDetails.TRART_QUANTITE || 1,
-                unitPrice: componentDetails.Prix || 0
+                unitPrice: componentDetails.prix || 0
               },
-              totalPrice: (componentDetails.TRART_QUANTITE || 1) * (componentDetails.Prix || 0),
+              totalPrice: (componentDetails.TRART_QUANTITE || 1) * (componentDetails.prix || 0),
               status: 'pending',
               orderDate: new Date().toISOString().split('T')[0]
             };
 
             transformedOrders.push(order);
           });
+        }
+      });
+
+      // 2. Ajouter les commandes des bons de travail
+      bonsTravail.forEach(bon => {
+        if (bon.composants && Array.isArray(bon.composants) && bon.composants.length > 0) {
+          bon.composants.forEach(bonComposant => {
+            const compDetails = bonComposant.component || {};
+            const componentDetails = componentIndex[compDetails.trartArticle] || compDetails;
+
+            const order = {
+              id: orderIdCounter++,
+              source: 'Bon de Travail',
+              sousProjetName: `Bon #${bon.id}`,
+              projectName: bon.description || bon.intervention?.description || 'Intervention',
+              component: {
+                reference: componentDetails.trartArticle || componentDetails.TRART_ARTICLE || 'N/A',
+                name: componentDetails.trartDesignation || componentDetails.TRART_DESIGNATION || 'Composant',
+                quantity: bonComposant.quantiteUtilisee || componentDetails.trartQuantite || 1,
+                unitPrice: componentDetails.prix || 0
+              },
+              totalPrice: (bonComposant.quantiteUtilisee || 1) * (componentDetails.prix || 0),
+              status: bon.statut === 'TERMINE' ? 'confirmed' : 'pending',
+              orderDate: bon.dateCreation ? new Date(bon.dateCreation).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              bonTravailId: bon.id,
+              technicien: bon.technicien ? `${bon.technicien.firstName || ''} ${bon.technicien.lastName || ''}`.trim() : 'Non assigné'
+            };
+
+            transformedOrders.push(order);
+          });
+        }
+      });
+
+      // Restaurer les validations depuis localStorage
+      const savedValidations = JSON.parse(localStorage.getItem('component_validations') || '{}');
+      transformedOrders.forEach(order => {
+        if (savedValidations[order.id]) {
+          order.status = savedValidations[order.id].status;
+          order.validatedAt = savedValidations[order.id].validatedAt;
         }
       });
 
@@ -116,23 +173,81 @@ const ComponentOrderValidation = () => {
     setFilteredOrders(filtered);
   }, [orders, searchTerm, statusFilter]);
 
-  const handleStatusChange = (orderId, newStatus) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
-    
-    const updatedOrders = orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    );
-    
-    const newStats = {
-      total: updatedOrders.length,
-      pending: updatedOrders.filter(o => o.status === 'pending').length,
-      confirmed: updatedOrders.filter(o => o.status === 'confirmed').length,
-      rejected: updatedOrders.filter(o => o.status === 'rejected').length
-    };
-    
-    setStats(newStats);
+  // Fonction de validation des commandes avec persistance
+  const handleStatusChange = async (orderId, newStatus) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Marquer comme en cours de traitement
+    setProcessingOrders(prev => new Set([...prev, orderId]));
+
+    try {
+      // Si c'est une commande provenant d'un bon de travail, mettre à jour le bon
+      if (order.source === 'Bon de Travail' && order.bonTravailId) {
+        try {
+          const token = localStorage.getItem('sagemcom_token') || localStorage.getItem('token');
+          const updateResponse = await fetch(`http://localhost:8089/PI/pi/bons/update/${order.bonTravailId}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              statut: newStatus === 'confirmed' ? 'TERMINE' : 'EN_ATTENTE'
+            })
+          });
+
+          if (!updateResponse.ok) {
+            console.warn('Impossible de mettre à jour le bon de travail côté serveur');
+          }
+        } catch (err) {
+          console.warn('Erreur lors de la mise à jour du bon:', err);
+        }
+      }
+
+      // Mettre à jour localement
+      const updatedOrders = orders.map(o => 
+        o.id === orderId ? { ...o, status: newStatus, validatedAt: new Date().toISOString() } : o
+      );
+
+      setOrders(updatedOrders);
+
+      // Sauvegarder dans localStorage pour persistance
+      const validationData = JSON.parse(localStorage.getItem('component_validations') || '{}');
+      validationData[orderId] = {
+        status: newStatus,
+        validatedAt: new Date().toISOString(),
+        orderId: orderId,
+        componentRef: order.component.reference
+      };
+      localStorage.setItem('component_validations', JSON.stringify(validationData));
+
+      // Mettre à jour les statistiques
+      const newStats = {
+        total: updatedOrders.length,
+        pending: updatedOrders.filter(o => o.status === 'pending').length,
+        confirmed: updatedOrders.filter(o => o.status === 'confirmed').length,
+        rejected: updatedOrders.filter(o => o.status === 'rejected').length
+      };
+      setStats(newStats);
+
+      // Afficher message de succès
+      const statusText = newStatus === 'confirmed' ? 'confirmée' : 'rejetée';
+      setSuccessMessage(`✅ Commande ${order.component.reference} ${statusText} avec succès !`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+
+    } catch (err) {
+      console.error('Erreur lors de la validation:', err);
+      setError(`Erreur lors de la validation: ${err.message}`);
+      setTimeout(() => setError(null), 5000);
+    } finally {
+      // Retirer du traitement
+      setProcessingOrders(prev => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
+    }
   };
 
   // Logique de pagination
@@ -253,6 +368,10 @@ const ComponentOrderValidation = () => {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-10px); }
         }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
         .glassmorphism {
           backdrop-filter: blur(20px);
           background: rgba(255, 255, 255, 0.9);
@@ -294,6 +413,30 @@ const ComponentOrderValidation = () => {
           position: 'relative',
           zIndex: 1
         }}>
+          {/* Message de succès */}
+          {successMessage && (
+            <div style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              zIndex: 9999,
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              padding: '1rem 1.5rem',
+              borderRadius: '12px',
+              boxShadow: '0 10px 40px rgba(16, 185, 129, 0.3)',
+              animation: 'slideInDown 0.5s ease-out',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              fontWeight: '500',
+              fontSize: '1rem'
+            }}>
+              <span style={{ fontSize: '1.5rem' }}>✅</span>
+              {successMessage}
+            </div>
+          )}
+
           {/* En-tête principal */}
           <div style={{
             marginBottom: '2rem',
@@ -541,7 +684,7 @@ const ComponentOrderValidation = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: 'rgba(0, 48, 97, 0.05)' }}>
-                      {['Sous-Projet', 'Projet', 'Composant', 'Référence', 'Quantité', 'Prix Total', 'Statut', 'Actions'].map((header) => (
+                      {['Source', 'Sous-Projet', 'Projet', 'Composant', 'Référence', 'Quantité', 'Prix Total', 'Statut', 'Actions'].map((header) => (
                         <th key={header} style={{
                           padding: '1rem',
                           textAlign: 'left',
@@ -563,6 +706,19 @@ const ComponentOrderValidation = () => {
                       }}
                       onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0, 48, 97, 0.05)'}
                       onMouseOut={(e) => e.currentTarget.style.background = index % 2 === 0 ? 'rgba(0, 48, 97, 0.02)' : 'transparent'}>
+                        <td style={{ padding: '1rem', borderBottom: '1px solid rgba(0, 48, 97, 0.1)' }}>
+                          <span style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '12px',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            background: order.source === 'Bon de Travail' ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                            color: 'white',
+                            display: 'inline-block'
+                          }}>
+                            {order.source === 'Bon de Travail' ? '🔧 BT' : '📋 SP'}
+                          </span>
+                        </td>
                         <td style={{ padding: '1rem', color: '#374151', borderBottom: '1px solid rgba(0, 48, 97, 0.1)', fontWeight: '500' }}>
                           {order.sousProjetName}
                         </td>
@@ -596,42 +752,100 @@ const ComponentOrderValidation = () => {
                           </span>
                         </td>
                         <td style={{ padding: '1rem', borderBottom: '1px solid rgba(0, 48, 97, 0.1)' }}>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                              onClick={() => handleStatusChange(order.id, 'confirmed')}
-                              style={{
-                                background: '#10b981',
-                                color: 'white',
-                                border: 'none',
-                                padding: '0.5rem',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                transition: 'all 0.3s ease'
-                              }}
-                              onMouseOver={(e) => e.target.style.background = '#059669'}
-                              onMouseOut={(e) => e.target.style.background = '#10b981'}
-                            >
-                              ✅
-                            </button>
-                            <button
-                              onClick={() => handleStatusChange(order.id, 'rejected')}
-                              style={{
-                                background: '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                padding: '0.5rem',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                transition: 'all 0.3s ease'
-                              }}
-                              onMouseOver={(e) => e.target.style.background = '#dc2626'}
-                              onMouseOut={(e) => e.target.style.background = '#ef4444'}
-                            >
-                              ❌
-                            </button>
-                          </div>
+                          {processingOrders.has(order.id) ? (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              color: '#6b7280',
+                              fontSize: '0.9rem'
+                            }}>
+                              <div style={{
+                                width: '20px',
+                                height: '20px',
+                                border: '3px solid rgba(0, 48, 97, 0.2)',
+                                borderTop: '3px solid #003061',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite'
+                              }}></div>
+                              Traitement...
+                            </div>
+                          ) : order.status !== 'pending' ? (
+                            <div style={{
+                              padding: '0.5rem 1rem',
+                              borderRadius: '8px',
+                              fontSize: '0.85rem',
+                              fontWeight: '600',
+                              background: order.status === 'confirmed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                              color: order.status === 'confirmed' ? '#059669' : '#dc2626',
+                              textAlign: 'center'
+                            }}>
+                              {order.status === 'confirmed' ? '✅ Validée' : '❌ Rejetée'}
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button
+                                onClick={() => handleStatusChange(order.id, 'confirmed')}
+                                disabled={processingOrders.has(order.id)}
+                                style={{
+                                  background: '#10b981',
+                                  color: 'white',
+                                  border: 'none',
+                                  padding: '0.5rem 0.75rem',
+                                  borderRadius: '6px',
+                                  cursor: 'pointer',
+                                  fontSize: '0.85rem',
+                                  fontWeight: '600',
+                                  transition: 'all 0.3s ease',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem'
+                                }}
+                                onMouseOver={(e) => {
+                                  e.target.style.background = '#059669';
+                                  e.target.style.transform = 'translateY(-2px)';
+                                  e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.background = '#10b981';
+                                  e.target.style.transform = 'translateY(0)';
+                                  e.target.style.boxShadow = 'none';
+                                }}
+                              >
+                                ✅ Valider
+                              </button>
+                              <button
+                                onClick={() => handleStatusChange(order.id, 'rejected')}
+                                disabled={processingOrders.has(order.id)}
+                                style={{
+                                  background: '#ef4444',
+                                  color: 'white',
+                                  border: 'none',
+                                  padding: '0.5rem 0.75rem',
+                                  borderRadius: '6px',
+                                  cursor: 'pointer',
+                                  fontSize: '0.85rem',
+                                  fontWeight: '600',
+                                  transition: 'all 0.3s ease',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem'
+                                }}
+                                onMouseOver={(e) => {
+                                  e.target.style.background = '#dc2626';
+                                  e.target.style.transform = 'translateY(-2px)';
+                                  e.target.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.background = '#ef4444';
+                                  e.target.style.transform = 'translateY(0)';
+                                  e.target.style.boxShadow = 'none';
+                                }}
+                              >
+                                ❌ Rejeter
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}

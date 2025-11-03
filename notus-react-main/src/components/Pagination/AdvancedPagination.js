@@ -20,6 +20,11 @@ const AdvancedPagination = ({
   const [sortDirection, setSortDirection] = useState('asc');
   const [filters, setFilters] = useState({});
 
+  // Fonction utilitaire pour accéder aux propriétés imbriquées
+  const getNestedValue = (obj, path) => {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
+  };
+
   // Filtrage et recherche
   const filteredData = useMemo(() => {
     let result = [...data];
@@ -39,7 +44,8 @@ const AdvancedPagination = ({
       if (value && value !== '') {
         result = result.filter(item => {
           const itemValue = getNestedValue(item, field);
-          return itemValue && itemValue.toString().toLowerCase().includes(value.toLowerCase());
+          // Pour les filtres de sélection, on fait une correspondance exacte
+          return itemValue && itemValue.toString() === value;
         });
       }
     });
@@ -50,8 +56,23 @@ const AdvancedPagination = ({
         const aValue = getNestedValue(a, sortField);
         const bValue = getNestedValue(b, sortField);
         
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        // Gestion des dates
+        if (sortField === 'dateDemande') {
+          const dateA = new Date(aValue);
+          const dateB = new Date(bValue);
+          return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+        }
+        
+        // Gestion des chaînes et autres valeurs
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return sortDirection === 'asc' ? 1 : -1;
+        if (bValue == null) return sortDirection === 'asc' ? -1 : 1;
+        
+        const aStr = aValue.toString().toLowerCase();
+        const bStr = bValue.toString().toLowerCase();
+        
+        if (aStr < bStr) return sortDirection === 'asc' ? -1 : 1;
+        if (aStr > bStr) return sortDirection === 'asc' ? 1 : -1;
         return 0;
       });
     }
@@ -64,11 +85,6 @@ const AdvancedPagination = ({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData.slice(startIndex, endIndex);
-
-  // Fonction utilitaire pour accéder aux propriétés imbriquées
-  const getNestedValue = (obj, path) => {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
-  };
 
   // Gestion du changement de page
   const handlePageChange = (page) => {

@@ -380,399 +380,82 @@ export default function Navbar(props) {
               )}
             </div>
 
-            {/* Auth Buttons / User Info */}
+            {/* Auth Buttons only (no user dropdown on homepage) */}
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              {currentUser ? (
-                /* User Profile Section */
-                <div style={{ position: "relative" }}>
-                  <div
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '12px 20px',
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
-                      backdropFilter: 'blur(15px)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      boxShadow: '0 8px 32px rgba(0,120,212,0.15)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(0,120,212,0.1) 100%)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,120,212,0.25)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,120,212,0.15)';
-                    }}
-                  >
-                    {/* User Info */}
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{
-                        fontSize: '14px',
-                        fontWeight: '700',
-                        color: 'white',
-                        fontFamily: '"Inter", sans-serif',
-                        letterSpacing: '0.3px'
-                      }}>
-                        {currentUser.firstname || currentUser.firstName || currentUser.name} {currentUser.lastname || currentUser.lastName || ''}
-                      </div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: 'rgba(255,255,255,0.8)',
-                        fontWeight: '500',
-                        marginTop: '2px'
-                      }}>
-                        {currentUser.role || 'Utilisateur'}
-                      </div>
-                    </div>
-                    
-                    {/* Avatar */}
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      background: 'linear-gradient(135deg, #0078d4 0%, #003061 100%)',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: '2px solid rgba(255,255,255,0.3)',
-                      boxShadow: '0 4px 16px rgba(0,120,212,0.3)'
-                    }}>
-                      <span style={{
-                        fontSize: '18px',
-                        color: 'white'
-                      }}>
-                        {currentUser?.role === 'ADMIN' && '👑'}
-                        {currentUser?.role === 'MAGASINIER' && '📦'}
-                        {currentUser?.role === 'TECHNICIEN' && '🔧'}
-                        {currentUser?.role === 'MANAGER' && '📊'}
-                        {currentUser?.role === 'SUPERVISEUR' && '👥'}
-                        {!currentUser?.role && '👤'}
-                      </span>
-                    </div>
-                    
-                    {/* Dropdown Arrow */}
-                    <i className="fas fa-chevron-down" style={{
-                      fontSize: '10px',
-                      color: 'rgba(255,255,255,0.8)',
-                      transition: 'transform 0.3s ease',
-                      transform: userMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)'
-                    }}></i>
-                  </div>
-
-                  {/* User Dropdown Menu */}
-                  {userMenuOpen && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      marginTop: '8px',
-                      minWidth: '280px',
-                      background: 'linear-gradient(135deg, rgba(0,48,97,0.95) 0%, rgba(0,120,212,0.92) 100%)',
-                      backdropFilter: 'blur(25px)',
-                      borderRadius: '16px',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      boxShadow: '0 20px 40px rgba(0,48,97,0.4)',
-                      padding: '0',
-                      zIndex: 1000,
-                      animation: 'fadeIn 0.2s ease-out',
-                      overflow: 'hidden'
-                    }}>
-                      {/* User Info Header */}
-                      <div style={{
-                        padding: '20px 20px 16px 20px',
-                        borderBottom: '1px solid rgba(255,255,255,0.1)',
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)'
-                      }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          marginBottom: '12px'
-                        }}>
-                          {/* Avatar */}
-                          <div style={{
-                            width: '48px',
-                            height: '48px',
-                            background: 'linear-gradient(135deg, #0078d4 0%, #003061 100%)',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '2px solid rgba(255,255,255,0.3)',
-                            boxShadow: '0 4px 16px rgba(0,120,212,0.3)'
-                          }}>
-                            <i className="fas fa-user" style={{
-                              fontSize: '18px',
-                              color: 'white'
-                            }}></i>
-                          </div>
-                          
-                          {/* User Details */}
-                          <div style={{ flex: 1 }}>
-                            <div style={{
-                              fontSize: '16px',
-                              fontWeight: '700',
-                              color: 'white',
-                              fontFamily: '"Inter", sans-serif',
-                              letterSpacing: '0.3px',
-                              marginBottom: '4px'
-                            }}>
-                              {currentUser.firstName || currentUser.name} {currentUser.lastName || ''}
-                            </div>
-                            <div style={{
-                              fontSize: '12px',
-                              color: 'rgba(255,255,255,0.8)',
-                              fontWeight: '500',
-                              marginBottom: '6px',
-                              padding: '2px 8px',
-                              background: 'rgba(255,255,255,0.1)',
-                              borderRadius: '12px',
-                              display: 'inline-block'
-                            }}>
-                              👤 {currentUser.role || 'Utilisateur'}
-                            </div>
-                            <div style={{
-                              fontSize: '13px',
-                              color: 'rgba(255,255,255,0.7)',
-                              fontWeight: '400',
-                              fontFamily: '"Inter", sans-serif'
-                            }}>
-                              📧 {currentUser.email || 'email@sagemcom.com'}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Menu Items */}
-                      <div style={{ padding: '8px' }}>
-                        <Link
-                          to="/admin/dashboard"
-                          onClick={() => setUserMenuOpen(false)}
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            padding: '12px 16px',
-                            borderRadius: '12px',
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'rgba(255,255,255,0.9)',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            textDecoration: 'none',
-                            marginBottom: '4px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                          }}
-                        >
-                          <i className="fas fa-tachometer-alt"></i>
-                          Tableau de bord
-                        </Link>
-
-                        <button
-                          onClick={() => {
-                            setUserMenuOpen(false);
-                            // Navigation vers profil
-                          }}
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            padding: '12px 16px',
-                            borderRadius: '12px',
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'rgba(255,255,255,0.9)',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            marginBottom: '4px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                          }}
-                        >
-                          <i className="fas fa-user"></i>
-                          Mon Profil
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setUserMenuOpen(false);
-                            // Navigation vers paramètres
-                          }}
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            padding: '12px 16px',
-                            borderRadius: '12px',
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'rgba(255,255,255,0.9)',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            marginBottom: '8px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                          }}
-                        >
-                          <i className="fas fa-cog"></i>
-                          Paramètres
-                        </button>
-
-                        {/* Separator */}
-                        <div style={{
-                          height: '1px',
-                          background: 'rgba(255,255,255,0.1)',
-                          margin: '8px 0'
-                        }}></div>
-                        
-                        <button
-                          onClick={() => {
-                            setUserMenuOpen(false);
-                            // Nettoyer toutes les données utilisateur
-                            localStorage.removeItem('user');
-                            localStorage.removeItem('sagemcom_user');
-                            localStorage.removeItem('currentUser');
-                            localStorage.removeItem('token');
-                            setCurrentUser(null);
-                            if (logout) logout();
-                          }}
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            padding: '12px 16px',
-                            borderRadius: '12px',
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'rgba(255,107,107,0.9)',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255,107,107,0.1)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                          }}
-                        >
-                          <i className="fas fa-sign-out-alt"></i>
-                          Déconnexion
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Login/Register Buttons for non-authenticated users */
-                <>
-                  <Link
-                    to="/auth/login"
-                    style={{
-                      color: 'rgba(255,255,255,0.9)',
-                      textDecoration: 'none',
-                      padding: '12px 24px',
-                      borderRadius: '12px',
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = 'linear-gradient(135deg, rgba(0,120,212,0.3) 0%, rgba(0,48,97,0.2) 100%)';
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 12px 24px rgba(0,120,212,0.3)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)';
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                  >
-                    <i className="fas fa-sign-in-alt"></i>
-                    {t('auth.login')}
-                  </Link>
-                  
-                  <Link
-                    to="/auth/register"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      padding: '14px 28px',
-                      background: 'linear-gradient(135deg, #0078d4 0%, #003061 100%)',
-                      color: 'white',
-                      textDecoration: 'none',
-                      borderRadius: '16px',
-                      fontSize: '16px',
-                      fontWeight: '700',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      boxShadow: '0 8px 32px rgba(0,120,212,0.3)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.transform = 'translateY(-3px) scale(1.05)';
-                      e.target.style.boxShadow = '0 16px 40px rgba(0,120,212,0.4)';
-                      e.target.style.background = 'linear-gradient(135deg, #003061 0%, #0078d4 100%)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.transform = 'translateY(0) scale(1)';
-                      e.target.style.boxShadow = '0 8px 32px rgba(0,120,212,0.3)';
-                      e.target.style.background = 'linear-gradient(135deg, #0078d4 0%, #003061 100%)';
-                    }}
-                  >
-                    <span style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: '-100%',
-                      width: '100%',
-                      height: '100%',
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                      animation: 'shimmer 2s infinite'
-                    }}></span>
-                    <i className="fas fa-user-plus"></i>
-                    {t('auth.register')}
-                  </Link>
-                </>
-              )}
+              <Link
+                to="/auth/login"
+                style={{
+                  color: 'rgba(255,255,255,0.9)',
+                  textDecoration: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'linear-gradient(135deg, rgba(0,120,212,0.3) 0%, rgba(0,48,97,0.2) 100%)';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 12px 24px rgba(0,120,212,0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                <i className="fas fa-sign-in-alt"></i>
+                {t('auth.login')}
+              </Link>
+              
+              <Link
+                to="/auth/register"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '14px 28px',
+                  background: 'linear-gradient(135deg, #0078d4 0%, #003061 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '16px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  boxShadow: '0 8px 32px rgba(0,120,212,0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-3px) scale(1.05)';
+                  e.target.style.boxShadow = '0 16px 40px rgba(0,120,212,0.4)';
+                  e.target.style.background = 'linear-gradient(135deg, #003061 0%, #0078d4 100%)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0) scale(1)';
+                  e.target.style.boxShadow = '0 8px 32px rgba(0,120,212,0.3)';
+                  e.target.style.background = 'linear-gradient(135deg, #0078d4 0%, #003061 100%)';
+                }}
+              >
+                <span style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: '-100%',
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                  animation: 'shimmer 2.5s infinite'
+                }}></span>
+                <i className="fas fa-user-plus"></i>
+                {t('auth.register')}
+              </Link>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import AnalyticsDashboard from "../../components/Analytics/AnalyticsDashboard";
 import { NotificationProvider, useNotifications } from "../../components/Notifications/NotificationSystem";
 import AdvancedPagination from "../../components/Pagination/AdvancedPagination";
@@ -33,25 +33,46 @@ function ProjectCardContent() {
   const [availableUsers, setAvailableUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   
-  // useEffect pour charger les données au démarrage
+  // useEffect pour charger les données au démarrage - OPTIMISÉ
   useEffect(() => {
     console.log('🚀 useEffect exécuté - chargement des données...');
     fetchProjects();
     fetchUsers();
     fetchComponents();
-  }, []);
+  }, []); // Un seul useEffect au lieu de deux
   
-  // Calculer les statistiques basées sur les vrais projets
-  const totalBudget = projects.reduce((sum, project) => sum + (project.budget || 0), 0);
-  const totalSousProjetsBudget = sousProjects.reduce((sum, sp) => sum + (sp.totalPrice || 0), 0);
-  // Calcul du coût réel total basé sur les composants de tous les sous-projets
-  const totalSpent = sousProjects.reduce((sum, sp) => {
-    const coutReel = sp.components ? 
-      sp.components.reduce((compSum, comp) => compSum + (parseFloat(comp.prix) || 0), 0) : 0;
-    return sum + coutReel;
-  }, 0);
-  const totalProjects = projects.length;
-  const budgetPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+  // OPTIMISÉ: Mémoriser les statistiques pour éviter les recalculs
+  const statistics = useMemo(() => {
+    const totalBudget = projects.reduce((sum, project) => sum + (project.budget || 0), 0);
+    const totalSousProjetsBudget = sousProjects.reduce((sum, sp) => sum + (sp.totalPrice || 0), 0);
+    const totalSpent = sousProjects.reduce((sum, sp) => {
+      const coutReel = sp.components ? 
+        sp.components.reduce((compSum, comp) => compSum + (parseFloat(comp.prix) || 0), 0) : 0;
+      return sum + coutReel;
+    }, 0);
+    const totalProjects = projects.length;
+    const budgetPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+    
+    return { totalBudget, totalSousProjetsBudget, totalSpent, totalProjects, budgetPercentage };
+  }, [projects, sousProjects]);
+  
+  const { totalBudget, totalSousProjetsBudget, totalSpent, totalProjects, budgetPercentage } = statistics;
+
+  // OPTIMISÉ: Précalculer les statistiques des sous-projets pour éviter calculs répétés dans le render
+  const sousProjectsWithStats = useMemo(() => {
+    return sousProjects.map(sp => {
+      const budgetAlloue = sp.totalPrice || 0;
+      const coutReel = sp.components ? 
+        sp.components.reduce((sum, comp) => sum + (parseFloat(comp.prix) || 0), 0) : 0;
+      const depassement = coutReel > budgetAlloue;
+      const pourcentageUtilise = budgetAlloue > 0 ? (coutReel / budgetAlloue) * 100 : 0;
+      
+      return {
+        ...sp,
+        stats: { budgetAlloue, coutReel, depassement, pourcentageUtilise }
+      };
+    });
+  }, [sousProjects]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -165,8 +186,8 @@ function ProjectCardContent() {
     }
   };
 
-  // Fonction pour récupérer tous les projets du backend
-  const fetchProjects = async () => {
+  // OPTIMISÉ: Fonction pour récupérer tous les projets du backend avec useCallback
+  const fetchProjects = useCallback(async () => {
     setLoadingProjects(true);
     try {
       const response = await fetch("http://localhost:8089/PI/PI/projects/all", {
@@ -186,10 +207,10 @@ function ProjectCardContent() {
     } finally {
       setLoadingProjects(false);
     }
-  };
+  }, []);
 
-  // Fonction pour récupérer les utilisateurs disponibles
-  const fetchUsers = async () => {
+  // OPTIMISÉ: Fonction pour récupérer les utilisateurs disponibles avec useCallback
+  const fetchUsers = useCallback(async () => {
     console.log('🔍 Début fetchUsers...');
     setLoadingUsers(true);
     try {
@@ -217,10 +238,10 @@ function ProjectCardContent() {
       setLoadingUsers(false);
       console.log('🏁 Fin fetchUsers');
     }
-  };
+  }, []);
 
-  // Fonction pour récupérer les composants disponibles
-  const fetchComponents = async () => {
+  // OPTIMISÉ: Fonction pour récupérer les composants disponibles avec useCallback
+  const fetchComponents = useCallback(async () => {
     setLoadingComponents(true);
     try {
       const response = await fetch("http://localhost:8089/PI/PI/component/all", {
@@ -241,10 +262,10 @@ function ProjectCardContent() {
     } finally {
       setLoadingComponents(false);
     }
-  };
+  }, []);
 
-  // Fonction pour récupérer les sous-projets d'un projet
-  const fetchSousProjects = async (projectId) => {
+  // OPTIMISÉ: Fonction pour récupérer les sous-projets d'un projet avec useCallback
+  const fetchSousProjects = useCallback(async (projectId) => {
     setLoadingSousProjects(true);
     try {
       const response = await fetch(`http://localhost:8089/PI/PI/sousprojets/project/${projectId}`, {
@@ -265,7 +286,7 @@ function ProjectCardContent() {
     } finally {
       setLoadingSousProjects(false);
     }
-  };
+  }, []);
 
   // 🔔 Note: Les notifications aux magasiniers sont automatiquement gérées par le backend
   // lors de la création d'un sous-projet avec des composants. Aucune action manuelle nécessaire.
@@ -296,7 +317,7 @@ function ProjectCardContent() {
 
     try {
       console.log('🚀 CRÉATION SOUS-PROJET - URL appelée:', `http://localhost:8089/PI/sousprojets/create/${selectedProject.id}`);
-      const response = await fetch(`http://localhost:8089/PI/sousprojets/create/${selectedProject.id}`, {
+      const response = await fetch(`http://localhost:8089/PI/PI/sousprojets/create/${selectedProject.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataToSend)
@@ -447,14 +468,9 @@ function ProjectCardContent() {
     }
   };
 
-  // Charger les projets, composants et utilisateurs au montage du composant
-  React.useEffect(() => {
-    fetchProjects();
-    fetchComponents();
-    fetchUsers();
-  }, []);
+  // SUPPRIMÉ: useEffect dupliqué (déjà présent ligne 37)
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -470,7 +486,7 @@ function ProjectCardContent() {
     console.log('📤 Données envoyées au backend:', dataToSend);
 
     try {
-      const response = await fetch("http://localhost:8089/PI/projects/add", {
+      const response = await fetch("http://localhost:8089/PI/PI/projects/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataToSend)
@@ -516,7 +532,7 @@ function ProjectCardContent() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [formData, fetchProjects]);
 
   return (
     <>
@@ -1588,13 +1604,9 @@ function ProjectCardContent() {
                           </div>
                         ) : (
                           <div style={{ display: 'grid', gap: '1rem' }}>
-                            {sousProjects.map((sousProjet) => {
-                              // Calculer le coût réel basé sur les composants
-                              const coutReel = sousProjet.components ? 
-                                sousProjet.components.reduce((sum, comp) => sum + (parseFloat(comp.prix) || 0), 0) : 0;
-                              const budgetAlloue = sousProjet.totalPrice || 0;
-                              const depassement = coutReel > budgetAlloue;
-                              const pourcentageUtilise = budgetAlloue > 0 ? (coutReel / budgetAlloue) * 100 : 0;
+                            {sousProjectsWithStats.map((sousProjet) => {
+                              // OPTIMISÉ: Utiliser les statistiques précalculées
+                              const { budgetAlloue, coutReel, depassement, pourcentageUtilise } = sousProjet.stats;
                               
                               return (
                                 <div
@@ -2065,12 +2077,9 @@ function ProjectCardContent() {
                           display: 'grid',
                           gap: '1.5rem'
                         }}>
-                          {sousProjects.map((sousProjet, index) => {
-                            const budgetAlloue = sousProjet.totalPrice || 0;
-                            const coutReel = sousProjet.components ? 
-                              sousProjet.components.reduce((sum, comp) => sum + (parseFloat(comp.prix) || 0), 0) : 0;
-                            const depassement = coutReel > budgetAlloue;
-                            const pourcentageUtilise = budgetAlloue > 0 ? (coutReel / budgetAlloue) * 100 : 0;
+                          {sousProjectsWithStats.map((sousProjet, index) => {
+                            // OPTIMISÉ: Utiliser les statistiques précalculées
+                            const { budgetAlloue, coutReel, depassement, pourcentageUtilise } = sousProjet.stats;
                             
                             return (
                               <div

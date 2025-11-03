@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useProjectContext } from '../../contexts/ProjectContext';
 import { useSecurity } from '../../contexts/SecurityContext';
 import { useNotifications } from '../Notifications/NotificationSystem';
@@ -7,6 +8,7 @@ const AIAssistant = () => {
   const { projects, sousProjects } = useProjectContext();
   const { user } = useSecurity();
   const { addNotification } = useNotifications();
+  const location = useLocation();
   
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -15,6 +17,15 @@ const AIAssistant = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [selectedMode, setSelectedMode] = useState('chat');
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [contextInfo, setContextInfo] = useState({ title: 'Général', subtitle: "", suggestions: [] });
+  
+  const sendAction = (type, payload) => {
+    try {
+      window.dispatchEvent(new CustomEvent('sage-action', { detail: { type, payload } }));
+    } catch (e) {
+      // no-op
+    }
+  };
   
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -24,6 +35,50 @@ const AIAssistant = () => {
     initializeAssistant();
     setupVoiceRecognition();
   }, [user]);
+
+  // Adapter dynamiquement le contexte selon la page
+  useEffect(() => {
+    const path = location?.pathname || '';
+    let ctx = { title: 'Général', subtitle: "", suggestions: [] };
+    if (path.includes('/admin/assign-intervention')) {
+      ctx = {
+        title: 'Assigner des Interventions',
+        subtitle: 'Sélectionnez une intervention, puis un testeur/technicien. Utilisez la recherche et les filtres.',
+        suggestions: ['Afficher la liste', 'Actualiser données', 'Conseils d’assignation']
+      };
+    } else if (path.includes('/admin/validation-interventions')) {
+      ctx = {
+        title: 'Validation des Interventions',
+        subtitle: 'Filtrez sur EN_ATTENTE pour confirmer rapidement les demandes.',
+        suggestions: ['Filtrer EN_ATTENTE', 'Voir conseils validation', 'Réinitialiser filtres']
+      };
+    } else if (path.includes('/admin/interventions')) {
+      ctx = {
+        title: 'Liste des interventions',
+        subtitle: 'Recherchez par #, description, type (CURATIVE / PRÉVENTIVE).',
+        suggestions: ['Recherche avancée', 'Filtrer par type', 'Trier par date']
+      };
+    } else if (path.includes('/admin/kpi-dashboard') || path.includes('/admin/analytics')) {
+      ctx = {
+        title: 'KPI & Analytics',
+        subtitle: 'Analyse des indicateurs et recommandations d’amélioration.',
+        suggestions: ['Analyser mes KPI du mois', 'Identifier goulots d’étranglement', 'Proposer actions MTTR/MTBF']
+      };
+    }
+    setContextInfo(ctx);
+
+    // Injecter un message contextuel léger
+    if (ctx.title !== 'Général') {
+      const tip = {
+        id: Date.now(),
+        type: 'assistant',
+        content: `📍 Contexte: ${ctx.title}\n\n${ctx.subtitle}`,
+        timestamp: new Date(),
+        suggestions: ctx.suggestions
+      };
+      setMessages(prev => (prev.length === 0 ? [tip] : [...prev, tip]));
+    }
+  }, [location]);
 
   // Auto-scroll vers le bas
   useEffect(() => {
@@ -298,6 +353,16 @@ Reformulez votre question ou choisissez un domaine d'assistance.`;
   };
 
   const handleSuggestionClick = (suggestion) => {
+    // Mapper quelques suggestions courantes vers des actions
+    const s = suggestion.toLowerCase();
+    if (contextInfo.title.includes('Assigner') && (s.includes('actualiser') || s.includes('données'))) {
+      sendAction('assign:refresh');
+      return;
+    }
+    if (contextInfo.title.includes('Validation') && s.includes('en_attente')) {
+      sendAction('validation:filter-en-attente');
+      return;
+    }
     setInputMessage(suggestion);
   };
 
@@ -314,7 +379,7 @@ Reformulez votre question ou choisissez un domaine d'assistance.`;
         position: 'fixed',
         bottom: '20px',
         right: '20px',
-        zIndex: 1000
+        zIndex: 9999
       }}>
         <button
           onClick={() => setIsMinimized(false)}
@@ -349,7 +414,7 @@ Reformulez votre question ou choisissez un domaine d'assistance.`;
       boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
       display: 'flex',
       flexDirection: 'column',
-      zIndex: 1000,
+      zIndex: 9999,
       border: '1px solid #e5e7eb'
     }}>
       {/* Header */}
@@ -367,12 +432,28 @@ Reformulez votre question ou choisissez un domaine d'assistance.`;
           <div>
             <div style={{ fontWeight: '600' }}>SAGE Assistant</div>
             <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>
-              {isTyping ? '✍️ En train d\'écrire...' : '🟢 En ligne'}
+              {isTyping ? '✍️ En train d\'écrire...' : `🟢 ${contextInfo.title}`}
             </div>
+            {contextInfo.subtitle && (
+              <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{contextInfo.subtitle}</div>
+            )}
           </div>
         </div>
-        
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        {/* Quick actions contextuelles */}
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {contextInfo.title.includes('Assigner') && (
+            <>
+              <button onClick={() => sendAction('assign:view-assign')} style={{ background:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', borderRadius:6, padding:'0.25rem 0.5rem', cursor:'pointer', fontSize:'0.75rem' }}>Assigner</button>
+              <button onClick={() => sendAction('assign:view-list')} style={{ background:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', borderRadius:6, padding:'0.25rem 0.5rem', cursor:'pointer', fontSize:'0.75rem' }}>Liste</button>
+              <button onClick={() => sendAction('assign:refresh')} style={{ background:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', borderRadius:6, padding:'0.25rem 0.5rem', cursor:'pointer', fontSize:'0.75rem' }}>Actualiser</button>
+              <button onClick={() => sendAction('assign:clear-filters')} style={{ background:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', borderRadius:6, padding:'0.25rem 0.5rem', cursor:'pointer', fontSize:'0.75rem' }}>Vider filtres</button>
+            </>
+          )}
+          {contextInfo.title.includes('Validation') && (
+            <>
+              <button onClick={() => sendAction('validation:filter-en-attente')} style={{ background:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.3)', color:'#fff', borderRadius:6, padding:'0.25rem 0.5rem', cursor:'pointer', fontSize:'0.75rem' }}>EN_ATTENTE</button>
+            </>
+          )}
           <button
             onClick={() => setVoiceEnabled(!voiceEnabled)}
             style={{

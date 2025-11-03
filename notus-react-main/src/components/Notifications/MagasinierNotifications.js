@@ -77,10 +77,43 @@ const MagasinierNotifications = ({ userId, userRole }) => {
     return baseNotifications;
   };
 
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "Date inconnue";
+    
+    try {
+      if (dateValue instanceof Date && !isNaN(dateValue)) {
+        return dateValue.toLocaleString("fr-FR");
+      }
+      
+      if (typeof dateValue === 'number') {
+        return new Date(dateValue).toLocaleString("fr-FR");
+      }
+      
+      if (typeof dateValue === 'string') {
+        const date = new Date(dateValue);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleString("fr-FR");
+        }
+      }
+      
+      if (Array.isArray(dateValue) && dateValue.length >= 3) {
+        const [year, month, day, hour = 0, minute = 0, second = 0] = dateValue;
+        const date = new Date(year, month - 1, day, hour, minute, second);
+        return date.toLocaleString("fr-FR");
+      }
+      
+      return "Date invalide";
+    } catch (error) {
+      console.error("Erreur formatage date:", error, dateValue);
+      return "Date invalide";
+    }
+  };
+
   const fetchNotifications = async () => {
     setLoading(true);
+    console.log('🔍 Récupération des notifications pour userId:', userId);
     try {
-      // Tentative d'appel à l'API backend
+      // Tentative d'appel à l'API backend avec le bon chemin /PI/PI/
       const response = await fetch(`http://localhost:8089/PI/PI/notifications/user/${userId}`, {
         method: 'GET',
         headers: {
@@ -88,6 +121,8 @@ const MagasinierNotifications = ({ userId, userRole }) => {
           'Accept': 'application/json'
         }
       });
+      
+      console.log('📡 Réponse API notifications:', response.status);
 
       if (response.ok) {
         const data = await response.json();
@@ -148,12 +183,15 @@ const MagasinierNotifications = ({ userId, userRole }) => {
 
   const getTypeIcon = (type) => {
     switch (type) {
-      case 'SOUS_PROJET_CREATED': return '🆕';
+      case 'SOUS_PROJET_CREATED': return '📁';
+      case 'BON_TRAVAIL_CREATED': return '🛠️';
+      case 'INTERVENTION_ASSIGNED': return '🔧';
+      case 'INTERVENTION_CREATED': return '📋';
       case 'COMPONENT_ORDER': return '📦';
       case 'LOW_STOCK_ALERT': return '⚠️';
       case 'ORDER_VALIDATED': return '✅';
       case 'STOCK_UPDATE': return '🔄';
-      case 'INVENTORY_SCHEDULED': return '📋';
+      case 'INVENTORY_SCHEDULED': return '📝';
       default: return '🔔';
     }
   };
@@ -448,12 +486,7 @@ const MagasinierNotifications = ({ userId, userRole }) => {
                           color: '#6b7280',
                           whiteSpace: 'nowrap'
                         }}>
-                          {new Date(notification.createdAt).toLocaleString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
+                          {formatDate(notification.createdAt)}
                         </span>
                       </div>
                     </div>

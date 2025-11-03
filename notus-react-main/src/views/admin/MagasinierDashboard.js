@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import MagasinierNotifications from '../../components/Notifications/MagasinierNotifications';
+import { useSecurity } from '../../contexts/SecurityContext';
 
 const MagasinierDashboard = () => {
+  const { user } = useSecurity();
   const [userInfo, setUserInfo] = useState(null);
   const [stats, setStats] = useState({
     totalNotifications: 0,
@@ -11,23 +13,46 @@ const MagasinierDashboard = () => {
   });
 
   useEffect(() => {
-    // Simuler les informations utilisateur (normalement récupérées depuis le contexte d'auth)
-    const mockUserInfo = {
-      id: 2,
-      name: 'Linda Benjeddou',
-      role: 'MAGASINIER',
-      email: 'benjeddoulindaddd@gmail.com'
-    };
-    setUserInfo(mockUserInfo);
+    // Récupérer les informations de l'utilisateur connecté
+    console.log('🔍 Utilisateur connecté:', user);
+    
+    if (user) {
+      const currentUserInfo = {
+        id: user.userId || user.id,
+        name: `${user.firstName || user.firstname || ''} ${user.lastName || user.lastname || ''}`.trim() || user.email,
+        role: user.role || 'MAGASINIER',
+        email: user.email
+      };
+      console.log('✅ UserInfo pour dashboard:', currentUserInfo);
+      setUserInfo(currentUserInfo);
+    } else {
+      // Fallback: essayer de récupérer depuis localStorage
+      const storedUser = localStorage.getItem('sagemcom_user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          const fallbackUserInfo = {
+            id: parsedUser.userId || parsedUser.id,
+            name: `${parsedUser.firstName || parsedUser.firstname || ''} ${parsedUser.lastName || parsedUser.lastname || ''}`.trim() || parsedUser.email,
+            role: parsedUser.role || 'MAGASINIER',
+            email: parsedUser.email
+          };
+          console.log('✅ UserInfo depuis localStorage:', fallbackUserInfo);
+          setUserInfo(fallbackUserInfo);
+        } catch (e) {
+          console.error('❌ Erreur parsing user localStorage:', e);
+        }
+      }
+    }
 
-    // Simuler les statistiques
+    // Simuler les statistiques (à remplacer par un appel API réel)
     setStats({
       totalNotifications: 12,
       unreadNotifications: 2,
       componentsOrdered: 47,
       pendingTasks: 3
     });
-  }, []);
+  }, [user]);
 
   if (!userInfo) {
     return (

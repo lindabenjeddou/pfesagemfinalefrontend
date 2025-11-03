@@ -382,7 +382,6 @@ const Profile = () => {
           height: '200px',
           background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
           borderRadius: '50%',
-          animation: 'float 6s ease-in-out infinite',
         }}
       />
       <div
@@ -394,7 +393,6 @@ const Profile = () => {
           height: '150px',
           background: 'radial-gradient(circle, rgba(77,166,255,0.2) 0%, transparent 70%)',
           borderRadius: '50%',
-          animation: 'float 8s ease-in-out infinite reverse',
         }}
       />
       <div
@@ -406,7 +404,6 @@ const Profile = () => {
           height: '100px',
           background: 'radial-gradient(circle, rgba(0,102,204,0.15) 0%, transparent 70%)',
           borderRadius: '50%',
-          animation: 'float 10s ease-in-out infinite',
         }}
       />
       
@@ -444,7 +441,6 @@ const Profile = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            animation: 'slideInRight 0.5s ease-out',
           }}
         >
           <span style={{ fontSize: '20px' }}>✨</span>
@@ -582,29 +578,77 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Main Profile Card */}
+        {/* Main Profile Card - Ultra Modern Design */}
         <div
           style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: '24px',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(240, 248, 255, 0.92))',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            borderRadius: '32px',
+            boxShadow: `
+              0 30px 80px rgba(0, 48, 97, 0.2),
+              0 0 0 1px rgba(77, 166, 255, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.9)
+            `,
+            border: '2px solid rgba(77, 166, 255, 0.3)',
             overflow: 'hidden',
+            position: 'relative',
+            transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-5px)';
+            e.currentTarget.style.boxShadow = `
+              0 40px 100px rgba(0, 48, 97, 0.3),
+              0 0 0 2px rgba(77, 166, 255, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 1)
+            `;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = `
+              0 30px 80px rgba(0, 48, 97, 0.2),
+              0 0 0 1px rgba(77, 166, 255, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.9)
+            `;
           }}
         >
-          {/* Hero Section avec Gradient Bleu Professionnel */}
+          {/* Floating Decorative Elements */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #003061 0%, #0066cc 70%, #4da6ff 100%)',
-              padding: '48px',
-              borderRadius: '24px 24px 0 0',
+              position: 'absolute',
+              top: '10%',
+              right: '-5%',
+              width: '200px',
+              height: '200px',
+              background: 'radial-gradient(circle, rgba(77, 166, 255, 0.15), transparent 70%)',
+              borderRadius: '50%',
+              zIndex: 0,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '20%',
+              left: '-5%',
+              width: '150px',
+              height: '150px',
+              background: 'radial-gradient(circle, rgba(0, 102, 204, 0.1), transparent 70%)',
+              borderRadius: '50%',
+              zIndex: 0,
+            }}
+          />
+
+          {/* Hero Section avec Gradient Futuriste */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #003061 0%, #0066cc 50%, #4da6ff 100%)',
+              padding: '56px 48px',
+              borderRadius: '32px 32px 0 0',
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: '0 10px 30px rgba(0, 48, 97, 0.3)',
+              boxShadow: '0 20px 60px rgba(0, 48, 97, 0.4)',
             }}
           >
-            {/* Background Pattern */}
+            {/* Animated Background Pattern */}
             <div
               style={{
                 position: 'absolute',
@@ -612,8 +656,34 @@ const Profile = () => {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-                opacity: 0.3,
+                background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.15"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+                opacity: 0.4,
+              }}
+            />
+            
+            {/* Geometric Decorative Shapes */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '40px',
+                width: '100px',
+                height: '100px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+                backdropFilter: 'blur(10px)',
+              }}
+            />
+            
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '30px',
+                left: '30px',
+                width: '120px',
+                height: '120px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%',
               }}
             />
             
@@ -626,60 +696,153 @@ const Profile = () => {
                 zIndex: 1,
               }}
             >
-              {/* User Info */}
+              {/* User Info - Modern Design */}
               <div style={{ flex: 1 }}>
+                {/* Role Badge with Glow Effect */}
                 <div
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    backdropFilter: 'blur(10px)',
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    marginBottom: '16px',
+                    gap: '8px',
+                    background: 'rgba(255, 255, 255, 0.25)',
+                    backdropFilter: 'blur(15px)',
+                    padding: '10px 20px',
+                    borderRadius: '24px',
+                    marginBottom: '20px',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = '0 12px 32px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4)';
                   }}
                 >
-                  <span style={{ fontSize: '12px', color: 'white', fontWeight: '600' }}>
+                  <span style={{ 
+                    fontSize: '16px',
+                    filter: 'drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3))',
+                  }}>💼</span>
+                  <span style={{ 
+                    fontSize: '13px', 
+                    color: 'white', 
+                    fontWeight: '700',
+                    letterSpacing: '1px',
+                    textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                  }}>
                     {userDetails?.role || user?.role || 'UTILISATEUR'}
                   </span>
                 </div>
                 
+                {/* Status Badge - En ligne */}
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: 'rgba(16, 185, 129, 0.2)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    marginBottom: '20px',
+                    border: '2px solid rgba(16, 185, 129, 0.4)',
+                    boxShadow: '0 4px 16px rgba(16, 185, 129, 0.2)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#10b981',
+                      boxShadow: '0 0 8px rgba(16, 185, 129, 0.8)',
+                    }}
+                  />
+                  <span style={{ 
+                    fontSize: '12px', 
+                    color: 'white', 
+                    fontWeight: '600',
+                  }}>
+                    En ligne
+                  </span>
+                  <span style={{ 
+                    fontSize: '11px', 
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    marginLeft: '4px',
+                  }}>
+                    • Dernière connexion: {new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                
+                {/* Name with Text Animation */}
                 <h2
                   style={{
-                    fontSize: '36px',
-                    fontWeight: '800',
+                    fontSize: '42px',
+                    fontWeight: '900',
                     color: 'white',
-                    margin: '0 0 16px 0',
-                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                    margin: '0 0 24px 0',
+                    textShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                    letterSpacing: '-0.5px',
+                    lineHeight: '1.2',
+                    background: 'linear-gradient(135deg, #ffffff, #e0f2ff)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
                   }}
                 >
                   {userDetails?.firstName || user?.firstName || 'Prénom'} {userDetails?.lastName || user?.lastName || 'Nom'}
                 </h2>
                 
+                {/* Info Cards with Modern Design */}
                 <div
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px',
+                    gap: '16px',
                   }}
                 >
+                  {/* Email Info Card */}
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '12px',
+                      gap: '16px',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(15px)',
+                      padding: '16px 20px',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateX(8px) scale(1.02)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateX(0) scale(1)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
                     }}
                   >
                     <div
                       style={{
-                        width: '40px',
-                        height: '40px',
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        borderRadius: '12px',
+                        width: '48px',
+                        height: '48px',
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        borderRadius: '14px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '18px',
+                        fontSize: '20px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        filter: 'drop-shadow(0 2px 4px rgba(255, 255, 255, 0.2))',
                       }}
                     >
                       📧
@@ -687,32 +850,55 @@ const Profile = () => {
                     <span
                       style={{
                         color: 'white',
-                        fontSize: '16px',
-                        fontWeight: '500',
+                        fontSize: '17px',
+                        fontWeight: '600',
+                        textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                        letterSpacing: '0.3px',
                       }}
                     >
                       {userDetails?.email || user?.email || 'Email non renseigné'}
                     </span>
                   </div>
                   
+                  {/* Address Info Card */}
                   {(userDetails?.adress || user?.adress) && (
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px',
+                        gap: '16px',
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        backdropFilter: 'blur(15px)',
+                        padding: '16px 20px',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateX(8px) scale(1.02)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                        e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateX(0) scale(1)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
                       }}
                     >
                       <div
                         style={{
-                          width: '40px',
-                          height: '40px',
-                          background: 'rgba(255, 255, 255, 0.2)',
-                          borderRadius: '12px',
+                          width: '48px',
+                          height: '48px',
+                          background: 'rgba(255, 255, 255, 0.25)',
+                          borderRadius: '14px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '18px',
+                          fontSize: '20px',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                          filter: 'drop-shadow(0 2px 4px rgba(255, 255, 255, 0.2))',
                         }}
                       >
                         📍
@@ -720,14 +906,103 @@ const Profile = () => {
                       <span
                         style={{
                           color: 'white',
-                          fontSize: '16px',
-                          fontWeight: '500',
+                          fontSize: '17px',
+                          fontWeight: '600',
+                          textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                          letterSpacing: '0.3px',
                         }}
                       >
                         {userDetails?.adress || user?.adress}
                       </span>
                     </div>
                   )}
+                </div>
+                
+                {/* Quick Stats */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '12px',
+                    marginTop: '24px',
+                  }}
+                >
+                  <div
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      backdropFilter: 'blur(10px)',
+                      padding: '16px 12px',
+                      borderRadius: '14px',
+                      textAlign: 'center',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>📅</div>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>
+                      {Math.floor((new Date() - new Date(userDetails?.createdAt || user?.createdAt || new Date())) / (1000 * 60 * 60 * 24)) || 0}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>Jours actif</div>
+                  </div>
+                  
+                  <div
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      backdropFilter: 'blur(10px)',
+                      padding: '16px 12px',
+                      borderRadius: '14px',
+                      textAlign: 'center',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>✅</div>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>100%</div>
+                    <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>Profil complet</div>
+                  </div>
+                  
+                  <div
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      backdropFilter: 'blur(10px)',
+                      padding: '16px 12px',
+                      borderRadius: '14px',
+                      textAlign: 'center',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔒</div>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>Actif</div>
+                    <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>Sécurité</div>
+                  </div>
                 </div>
               </div>
 
@@ -768,7 +1043,6 @@ const Profile = () => {
                       overflow: 'hidden',
                       position: 'relative',
                       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                      animation: 'pulse 3s ease-in-out infinite',
                     }}
                     onClick={() => isEditing && document.getElementById('profileImageInput').click()}
                     onMouseOver={(e) => {
@@ -814,756 +1088,20 @@ const Profile = () => {
                     )}
                   </div>
                   
-                  {/* Status Badge Bleu Professionnel */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: '12px',
-                      right: '12px',
-                      width: '40px',
-                      height: '40px',
-                      background: 'linear-gradient(135deg, #003061, #0066cc)',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontSize: '18px',
-                      fontWeight: '700',
-                      border: '4px solid rgba(255, 255, 255, 0.5)',
-                      boxShadow: '0 6px 20px rgba(0, 48, 97, 0.6), 0 0 0 2px rgba(77, 166, 255, 0.3)',
-                      animation: 'pulse 2s ease-in-out infinite',
-                    }}
-                  >
-                    ✓
-                  </div>
-                  
-                  {/* Notification Badge */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '8px',
-                      right: '8px',
-                      width: '32px',
-                      height: '32px',
-                      background: 'linear-gradient(135deg, #ff4444, #ff6b6b)',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontSize: '14px',
-                      fontWeight: '700',
-                      border: '3px solid rgba(255, 255, 255, 0.8)',
-                      boxShadow: '0 4px 15px rgba(255, 68, 68, 0.5), 0 0 0 2px rgba(255, 107, 107, 0.3)',
-                      animation: 'pulse 1.5s ease-in-out infinite',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => {
-                      // Toggle notifications panel
-                      console.log('Opening notifications panel');
-                      // Future: Open notifications modal or panel
-                    }}
-                  >
-                    {notificationsData?.unreadCount || 0}
-                  </div>
-                </div>
-                
-                {/* User Status Professionnel */}
-                <div
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(0, 48, 97, 0.3), rgba(0, 102, 204, 0.2))',
-                    backdropFilter: 'blur(15px)',
-                    padding: '16px 24px',
-                    borderRadius: '25px',
-                    border: '2px solid rgba(77, 166, 255, 0.4)',
-                    boxShadow: '0 8px 25px rgba(0, 48, 97, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                    animation: 'slideInUp 0.6s ease-out',
-                  }}
-                >
-                  <div
-                    style={{
-                      color: 'white',
-                      fontSize: '16px',
-                      fontWeight: '700',
-                      textAlign: 'center',
-                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
-                      background: 'linear-gradient(135deg, #ffffff, #4da6ff)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                    }}
-                  >
-                    ⚡ Utilisateur Actif Premium
-                  </div>
-                </div>
-                
-                <input
-                  id="profileImageInput"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  style={{ display: 'none' }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Personal Dashboard */}
-        <div
-          style={{
-            padding: '40px 40px 20px 40px',
-          }}
-        >
-          {/* Statistics Cards */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '24px',
-              marginBottom: '40px',
-            }}
-          >
-            {/* Interventions Card */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, #003061, #0066cc)',
-                borderRadius: '20px',
-                padding: '24px',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 10px 30px rgba(0, 48, 97, 0.3)',
-                animation: 'slideInUp 0.6s ease-out',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '-20px',
-                  right: '-20px',
-                  fontSize: '80px',
-                  opacity: 0.1,
-                }}
-              >
-                🔧
-              </div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', opacity: 0.9 }}>INTERVENTIONS</h4>
-                <div style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 8px 0' }}>
-                  {dashboardData?.statistics?.totalInterventions || dashboardData?.interventionsCount || 0}
-                </div>
-                <div style={{ fontSize: '12px', opacity: 0.8 }}>📈 Total réalisées</div>
-              </div>
-            </div>
-
-            {/* Projects Card */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, #0066cc, #4da6ff)',
-                borderRadius: '20px',
-                padding: '24px',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 10px 30px rgba(0, 102, 204, 0.3)',
-                animation: 'slideInUp 0.8s ease-out',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '-20px',
-                  right: '-20px',
-                  fontSize: '80px',
-                  opacity: 0.1,
-                }}
-              >
-                📊
-              </div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', opacity: 0.9 }}>PROJETS GÉRÉS</h4>
-                <div style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 8px 0' }}>
-                  {dashboardData?.statistics?.projectsManaged || dashboardData?.projectsManaged || 0}
-                </div>
-                <div style={{ fontSize: '12px', opacity: 0.8 }}>🎯 Total gérés</div>
-              </div>
-            </div>
-
-            {/* Performance Card */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, #4da6ff, #80c7ff)',
-                borderRadius: '20px',
-                padding: '24px',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 10px 30px rgba(77, 166, 255, 0.3)',
-                animation: 'slideInUp 1s ease-out',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '-20px',
-                  right: '-20px',
-                  fontSize: '80px',
-                  opacity: 0.1,
-                }}
-              >
-                🏆
-              </div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', opacity: 0.9 }}>TAUX DE RÉUSSITE</h4>
-                <div style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 8px 0' }}>
-                  {dashboardData?.statistics?.successRate ? Math.round(dashboardData.statistics.successRate) : 0}%
-                </div>
-                <div style={{ fontSize: '12px', opacity: 0.8 }}>⭐ {dashboardData?.statistics?.successRate >= 90 ? 'Excellent' : dashboardData?.statistics?.successRate >= 70 ? 'Bon' : 'À améliorer'}</div>
-              </div>
-            </div>
-
-            {/* Notifications Card */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, #80c7ff, #b3d9ff)',
-                borderRadius: '20px',
-                padding: '24px',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 10px 30px rgba(128, 199, 255, 0.3)',
-                animation: 'slideInUp 1.2s ease-out',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '-20px',
-                  right: '-20px',
-                  fontSize: '80px',
-                  opacity: 0.1,
-                }}
-              >
-                🔔
-              </div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', opacity: 0.9 }}>NOTIFICATIONS</h4>
-                <div style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 8px 0' }}>
-                  {notificationsData?.unreadCount || 0}
-                </div>
-                <div style={{ fontSize: '12px', opacity: 0.8 }}>📬 {notificationsData?.unreadCount > 0 ? 'Nouvelles' : 'Aucune nouvelle'}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Activity Timeline & Quick Actions */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-              gap: '30px',
-              marginBottom: '40px',
-            }}
-          >
-            {/* Recent Activity */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 248, 255, 0.95))',
-                backdropFilter: 'blur(25px)',
-                borderRadius: '24px',
-                padding: '32px',
-                border: '2px solid rgba(77, 166, 255, 0.3)',
-                boxShadow: '0 15px 40px rgba(0, 48, 97, 0.15)',
-                animation: 'slideInUp 1.4s ease-out',
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: '20px',
-                  fontWeight: '700',
-                  color: '#003061',
-                  margin: '0 0 24px 0',
-                  background: 'linear-gradient(135deg, #003061, #0066cc)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                ⚡ ACTIVITÉ RÉCENTE
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {activitiesData && activitiesData.length > 0 ? (
-                  activitiesData.slice(0, 5).map((activity, index) => (
-                    <div
-                      key={activity.id || index}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        padding: '16px',
-                        background: `rgba(${index % 3 === 0 ? '0, 48, 97' : index % 3 === 1 ? '0, 102, 204' : '77, 166, 255'}, 0.05)`,
-                        borderRadius: '12px',
-                        borderLeft: `4px solid ${index % 3 === 0 ? '#0066cc' : index % 3 === 1 ? '#4da6ff' : '#80c7ff'}`,
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '40px',
-                          height: '40px',
-                          background: 'linear-gradient(135deg, #003061, #0066cc)',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '18px',
-                        }}
-                      >
-                        {activity.icon || '📋'}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: '600', color: '#003061', fontSize: '14px' }}>
-                          {activity.activityType?.replace('_', ' ') || 'Activité'}
-                        </div>
-                        <div style={{ color: '#666', fontSize: '12px' }}>
-                          {activity.description || 'Description non disponible'}
-                        </div>
-                        <div style={{ color: '#999', fontSize: '11px' }}>
-                          {activity.createdAt ? new Date(activity.createdAt).toLocaleDateString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          }) : 'Date inconnue'}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  // Fallback si pas d'activités
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                      padding: '16px',
-                      background: 'rgba(0, 48, 97, 0.05)',
-                      borderRadius: '12px',
-                      borderLeft: '4px solid #0066cc',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        background: 'linear-gradient(135deg, #003061, #0066cc)',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px',
-                      }}
-                    >
-                      📋
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: '600', color: '#003061', fontSize: '14px' }}>Aucune activité récente</div>
-                      <div style={{ color: '#666', fontSize: '12px' }}>Vos activités apparaîtront ici</div>
-                      <div style={{ color: '#999', fontSize: '11px' }}>En attente...</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Quick Actions & Notifications */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 248, 255, 0.95))',
-                backdropFilter: 'blur(25px)',
-                borderRadius: '24px',
-                padding: '32px',
-                border: '2px solid rgba(77, 166, 255, 0.3)',
-                boxShadow: '0 15px 40px rgba(0, 48, 97, 0.15)',
-                animation: 'slideInUp 1.6s ease-out',
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: '20px',
-                  fontWeight: '700',
-                  color: '#003061',
-                  margin: '0 0 24px 0',
-                  background: 'linear-gradient(135deg, #003061, #0066cc)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                🚀 ACTIONS RAPIDES
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* Quick Action Buttons */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <button
-                    style={{
-                      background: 'linear-gradient(135deg, #003061, #0066cc)',
-                      color: 'white',
-                      border: 'none',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 4px 15px rgba(0, 48, 97, 0.3)',
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 8px 25px rgba(0, 48, 97, 0.4)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(0, 48, 97, 0.3)';
-                    }}
-                  >
-                    📝 Nouvelle DI
-                  </button>
-                  
-                  <button
-                    style={{
-                      background: 'linear-gradient(135deg, #0066cc, #4da6ff)',
-                      color: 'white',
-                      border: 'none',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 4px 15px rgba(0, 102, 204, 0.3)',
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 8px 25px rgba(0, 102, 204, 0.4)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(0, 102, 204, 0.3)';
-                    }}
-                  >
-                    📊 Rapport
-                  </button>
-                </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <button
-                    style={{
-                      background: 'linear-gradient(135deg, #4da6ff, #80c7ff)',
-                      color: 'white',
-                      border: 'none',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 4px 15px rgba(77, 166, 255, 0.3)',
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 8px 25px rgba(77, 166, 255, 0.4)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(77, 166, 255, 0.3)';
-                    }}
-                  >
-                    📦 Commande PDR
-                  </button>
-                  
-                  <button
-                    style={{
-                      background: 'linear-gradient(135deg, #80c7ff, #b3d9ff)',
-                      color: 'white',
-                      border: 'none',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      boxShadow: '0 4px 15px rgba(128, 199, 255, 0.3)',
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 8px 25px rgba(128, 199, 255, 0.4)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(128, 199, 255, 0.3)';
-                    }}
-                  >
-                    💬 Messages
-                  </button>
-                </div>
-
-                {/* Urgent Notifications */}
-                <div
-                  style={{
-                    marginTop: '24px',
-                    padding: '20px',
-                    background: 'linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 235, 59, 0.05))',
-                    borderRadius: '16px',
-                    border: '2px solid rgba(255, 193, 7, 0.3)',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      marginBottom: '12px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        background: 'linear-gradient(135deg, #ff9800, #ffc107)',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '16px',
-                        animation: 'pulse 2s ease-in-out infinite',
-                      }}
-                    >
-                      ⚠️
-                    </div>
-                    <div style={{ fontWeight: '700', color: '#e65100', fontSize: '16px' }}>URGENT</div>
-                  </div>
-                  <div style={{ color: '#bf360c', fontSize: '14px', lineHeight: '1.4' }}>
-                    Maintenance critique requise sur le système de refroidissement - Secteur B
-                  </div>
-                  <div style={{ color: '#8d6e63', fontSize: '12px', marginTop: '8px' }}>
-                    Échéance: Aujourd'hui 16h00
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Gamification Section */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-              gap: '30px',
-              marginBottom: '40px',
-            }}
-          >
-            {/* Badges & Achievements */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 248, 255, 0.95))',
-                backdropFilter: 'blur(25px)',
-                borderRadius: '24px',
-                padding: '32px',
-                border: '2px solid rgba(77, 166, 255, 0.3)',
-                boxShadow: '0 15px 40px rgba(0, 48, 97, 0.15)',
-                animation: 'slideInUp 1.8s ease-out',
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: '20px',
-                  fontWeight: '700',
-                  color: '#003061',
-                  margin: '0 0 24px 0',
-                  background: 'linear-gradient(135deg, #003061, #0066cc)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                🏆 BADGES & RÉUSSITES
-              </h3>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '16px' }}>
-                {Object.entries(gamificationData?.badges || {}).map(([badgeKey, earned], index) => {
-                const badgeInfo = {
-                  expertMaintenance: { name: 'Expert Maintenance', icon: '🔧' },
-                  innovator: { name: 'Innovateur', icon: '💡' },
-                  teamPlayer: { name: 'Équipier', icon: '👥' },
-                  perfectionist: { name: 'Perfectionniste', icon: '⭐' }
-                }[badgeKey] || { name: badgeKey, icon: '🏆' };
-                
-                return (
-                  <div
-                    key={badgeKey}
-                    style={{
-                      background: earned ? 'linear-gradient(135deg, #ffd700, #ffed4e)' : 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      textAlign: 'center',
-                      border: earned ? '2px solid #ffd700' : '2px solid rgba(255, 255, 255, 0.2)',
-                      opacity: earned ? 1 : 0.5,
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer',
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.transform = 'scale(1.05)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.transform = 'scale(1)';
-                    }}
-                  >
-                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>{badgeInfo.icon}</div>
-                    <div style={{
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      color: earned ? '#1f2937' : 'rgba(255, 255, 255, 0.7)'
-                    }}>
-                      {badgeInfo.name}
-                    </div>
-                  </div>
-                );
-              })}
-              </div>
-            </div>
-
-            {/* Experience Level & Progress */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 248, 255, 0.95))',
-                backdropFilter: 'blur(25px)',
-                borderRadius: '24px',
-                padding: '32px',
-                border: '2px solid rgba(77, 166, 255, 0.3)',
-                boxShadow: '0 15px 40px rgba(0, 48, 97, 0.15)',
-                animation: 'slideInUp 2s ease-out',
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: '20px',
-                  fontWeight: '700',
-                  color: '#003061',
-                  margin: '0 0 24px 0',
-                  background: 'linear-gradient(135deg, #003061, #0066cc)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                🎯 NIVEAU D'EXPÉRIENCE
-              </h3>
-              
-              {/* Current Level */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '16px',
-                  marginBottom: '24px',
-                }}
-              >
-                <div
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #003061, #0066cc)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '20px',
-                    fontWeight: '700',
-                    boxShadow: '0 8px 25px rgba(0, 48, 97, 0.3)',
-                  }}
-                >
-                  {gamificationData?.level || 1}
-                </div>
-                <div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#003061' }}>
-                    {gamificationData?.levelTitle || 'Débutant'}
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#666' }}>
-                    {gamificationData?.experiencePoints || 0} / {gamificationData?.xpForNextLevel || 100} XP
-                  </div>
-                </div>
-              </div>
-              
-              {/* Progress Bar */}
-              <div
-                style={{
-                  width: '100%',
-                  height: '12px',
-                  background: 'rgba(0, 48, 97, 0.1)',
-                  borderRadius: '6px',
-                  overflow: 'hidden',
-                  marginBottom: '16px',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${((gamificationData?.experiencePoints || 0) / (gamificationData?.xpForNextLevel || 100)) * 100}%`,
-                    height: '100%',
-                    background: 'linear-gradient(135deg, #003061, #0066cc, #4da6ff)',
-                    borderRadius: '6px',
-                    position: 'relative',
-                    animation: 'shimmer 2s ease-in-out infinite',
-                  }}
-                />
-              </div>
-              
-              {/* Next Achievements */}
-              <div style={{ marginTop: '20px' }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#003061', marginBottom: '12px' }}>🎯 Prochains Objectifs:</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 12px',
-                      background: 'rgba(0, 48, 97, 0.05)',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                  >
-                    <span>🎖️</span>
-                    <span style={{ color: '#666' }}>
-                      Niveau {(gamificationData?.level || 1) + 1} - {gamificationData?.level >= 15 ? 'Master Expert' : gamificationData?.level >= 10 ? 'Expert Avancé' : 'Niveau Supérieur'} 
-                      ({gamificationData?.xpNeededForNext || 100} XP restants)
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 12px',
-                      background: 'rgba(0, 102, 204, 0.05)',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                  >
-                    <span>🏅</span>
-                    <span style={{ color: '#666' }}>Badge "Mentor" - Former 5 nouveaux techniciens</span>
-                  </div>
+                  <input
+                    id="profileImageInput"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: 'none' }}
+                  />
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Profile Content */}
+        {/* Profile Content - Ultra Modern Design */}
         <div
           style={{
             padding: '0 40px 40px 40px',
@@ -1572,87 +1110,182 @@ const Profile = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '30px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '32px',
             }}
           >
-            {/* Informations Utilisateur */}
+            {/* Informations Utilisateur - Futuristic Card */}
             <div
               style={{
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 248, 255, 0.95))',
-                backdropFilter: 'blur(25px)',
-                padding: '40px',
-                borderRadius: '24px',
-                border: '2px solid rgba(77, 166, 255, 0.3)',
-                boxShadow: '0 15px 40px rgba(0, 48, 97, 0.15), 0 0 0 1px rgba(77, 166, 255, 0.2)',
+                background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(240, 248, 255, 0.9))',
+                backdropFilter: 'blur(30px) saturate(180%)',
+                padding: '48px',
+                borderRadius: '32px',
+                border: '2px solid rgba(77, 166, 255, 0.4)',
+                boxShadow: `
+                  0 20px 60px rgba(0, 48, 97, 0.2),
+                  0 0 0 1px rgba(77, 166, 255, 0.3),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.8)
+                `,
                 position: 'relative',
                 overflow: 'hidden',
-                animation: 'slideInUp 0.8s ease-out',
+                transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+                e.currentTarget.style.boxShadow = `
+                  0 30px 80px rgba(0, 48, 97, 0.3),
+                  0 0 0 2px rgba(77, 166, 255, 0.5),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.9)
+                `;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = `
+                  0 20px 60px rgba(0, 48, 97, 0.2),
+                  0 0 0 1px rgba(77, 166, 255, 0.3),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.8)
+                `;
               }}
             >
-              {/* Decorative Corner */}
+              {/* Animated Background Pattern */}
               <div
                 style={{
                   position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  width: '100px',
-                  height: '100px',
-                  background: 'linear-gradient(135deg, rgba(0, 48, 97, 0.1), rgba(77, 166, 255, 0.05))',
-                  borderRadius: '0 24px 0 100px',
+                  top: '-50%',
+                  right: '-50%',
+                  width: '200%',
+                  height: '200%',
+                  background: 'radial-gradient(circle, rgba(77, 166, 255, 0.1) 0%, transparent 70%)',
                 }}
               />
+              
+              {/* Decorative Geometric Shapes */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '20px',
+                  width: '120px',
+                  height: '120px',
+                  background: 'linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(77, 166, 255, 0.08))',
+                  borderRadius: '50% 30% 50% 30%',
+                }}
+              />
+              
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '30px',
+                  left: '30px',
+                  width: '80px',
+                  height: '80px',
+                  background: 'linear-gradient(225deg, rgba(0, 48, 97, 0.1), transparent)',
+                  borderRadius: '30% 50% 30% 50%',
+                }}
+              />
+              
               <h3
                 style={{
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  color: '#003061',
-                  margin: '0 0 24px 0',
+                  fontSize: '22px',
+                  fontWeight: '800',
+                  margin: '0 0 32px 0',
                   textTransform: 'uppercase',
-                  letterSpacing: '1px',
+                  letterSpacing: '2px',
                   position: 'relative',
                   zIndex: 1,
-                  background: 'linear-gradient(135deg, #003061, #0066cc)',
+                  background: 'linear-gradient(135deg, #003061, #0066cc, #4da6ff)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
                 }}
               >
-                👤 INFORMATIONS UTILISATEUR
+                <span style={{
+                  fontSize: '28px',
+                  filter: 'drop-shadow(0 4px 8px rgba(0, 102, 204, 0.3))',
+                }}>👤</span>
+                INFORMATIONS
               </h3>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* Email Field */}
-                <div>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '28px',
+                position: 'relative',
+                zIndex: 1 
+              }}>
+                {/* Email Field - Futuristic Style */}
+                <div
+                  style={{
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateX(8px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateX(0)';
+                  }}
+                >
                   <label
                     style={{
-                      display: 'block',
-                      fontSize: '14px',
-                      fontWeight: '700',
-                      color: '#003061',
-                      marginBottom: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      fontSize: '13px',
+                      fontWeight: '800',
+                      marginBottom: '14px',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      background: 'linear-gradient(135deg, #003061, #0066cc)',
+                      letterSpacing: '1.5px',
+                      background: 'linear-gradient(135deg, #003061, #0066cc, #4da6ff)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
                     }}
                   >
-                    📧 {t('profile.email', 'ADRESSE EMAIL').toUpperCase()}
+                    <span style={{
+                      fontSize: '22px',
+                      filter: 'drop-shadow(0 2px 4px rgba(0, 102, 204, 0.2))',
+                    }}>📧</span>
+                    {t('profile.email', 'EMAIL')}
                   </label>
                   <div
                     style={{
                       fontSize: '16px',
                       color: '#003061',
                       fontWeight: '600',
-                      padding: '16px 20px',
-                      background: 'linear-gradient(135deg, rgba(240, 248, 255, 0.8), rgba(255, 255, 255, 0.6))',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(77, 166, 255, 0.2)',
+                      padding: '18px 24px 18px 20px',
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 248, 255, 0.7))',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: '16px',
+                      border: '2px solid rgba(77, 166, 255, 0.25)',
                       position: 'relative',
+                      boxShadow: '0 8px 24px rgba(0, 48, 97, 0.08)',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.5)';
+                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 48, 97, 0.15)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.25)';
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 48, 97, 0.08)';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '4px',
+                      height: '100%',
+                      background: 'linear-gradient(180deg, #003061, #0066cc, #4da6ff)',
+                      borderRadius: '16px 0 0 16px',
+                    }}/>
                     {userDetails?.email || user?.email || 'Email non renseigné'}
                   </div>
                 </div>
@@ -1796,7 +1429,6 @@ const Profile = () => {
                 boxShadow: '0 15px 40px rgba(0, 48, 97, 0.15), 0 0 0 1px rgba(77, 166, 255, 0.2)',
                 position: 'relative',
                 overflow: 'hidden',
-                animation: 'slideInUp 1s ease-out',
               }}
             >
               {/* Decorative Corner */}

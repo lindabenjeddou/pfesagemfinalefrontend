@@ -1,5 +1,8 @@
 import React from "react";
-import Chart from "chart.js";
+import { Chart, registerables } from 'chart.js';
+
+// Enregistrer les composants nécessaires
+Chart.register(...registerables);
 
 export default function CardBarChart() {
   React.useEffect(() => {

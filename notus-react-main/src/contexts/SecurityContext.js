@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { getApiBaseURL } from '../config/api.config';
 
 // Constantes des rôles utilisateur (correspondant exactement au backend)
 export const USER_ROLES = {
@@ -66,46 +67,53 @@ const ROLE_PERMISSIONS = {
     ...Object.values(PERMISSIONS) // Admin a accès à tout
   ],
   [USER_ROLES.CHEF_PROJET]: [
-    PERMISSIONS.VIEW_PROJECTS,
-    PERMISSIONS.CREATE_PROJECTS,
-    PERMISSIONS.EDIT_PROJECTS,
-    PERMISSIONS.DELETE_PROJECTS,
-    PERMISSIONS.VIEW_SUBPROJECTS,
-    PERMISSIONS.CREATE_SUBPROJECTS,
-    PERMISSIONS.CONFIRM_SUBPROJECTS,
-    PERMISSIONS.VIEW_WORK_ORDERS,
-    PERMISSIONS.CREATE_WORK_ORDERS,
-    PERMISSIONS.EDIT_WORK_ORDERS,
+    // Gestion des projets - Accès complet
+    PERMISSIONS.VIEW_PROJECT,
+    PERMISSIONS.CREATE_PROJECT,
+    PERMISSIONS.EDIT_PROJECT,
+    PERMISSIONS.DELETE_PROJECT,
+    PERMISSIONS.CONFIRM_PROJECT,
+    // Gestion des sous-projets
+    PERMISSIONS.VIEW_SUBPROJECT,
+    PERMISSIONS.CREATE_SUBPROJECT,
+    PERMISSIONS.EDIT_SUBPROJECT,
+    PERMISSIONS.DELETE_SUBPROJECT,
+    PERMISSIONS.CONFIRM_SUBPROJECT,
+    // Interventions
     PERMISSIONS.VIEW_INTERVENTIONS,
-    PERMISSIONS.CREATE_INTERVENTIONS,
+    PERMISSIONS.CREATE_INTERVENTION,
+    PERMISSIONS.EDIT_INTERVENTIONS,
+    // Analytics et rapports
     PERMISSIONS.VIEW_ANALYTICS,
     PERMISSIONS.VIEW_REPORTS,
     PERMISSIONS.EXPORT_DATA,
     PERMISSIONS.VIEW_PREDICTIVE_KPI,
     PERMISSIONS.VIEW_ENHANCED_ANALYTICS,
-    PERMISSIONS.VIEW_INTELLIGENT_SCHEDULER,
+    PERMISSIONS.USE_INTELLIGENT_SCHEDULER,
     PERMISSIONS.VIEW_GAMIFICATION,
-    PERMISSIONS.VIEW_AI_ASSISTANT
+    PERMISSIONS.USE_AI_ASSISTANT
   ],
   [USER_ROLES.CHEF_SECTEUR]: [
-    // Chef de secteur - gestion d'équipe et supervision
-    PERMISSIONS.VIEW_PROJECTS,
-    PERMISSIONS.EDIT_PROJECTS,
-    PERMISSIONS.VIEW_SUBPROJECTS,
-    PERMISSIONS.VIEW_WORK_ORDERS,
-    PERMISSIONS.CREATE_WORK_ORDERS,
-    PERMISSIONS.EDIT_WORK_ORDERS,
+    // Chef de secteur - gestion d'équipe et supervision (SANS accès création de projets)
+    PERMISSIONS.VIEW_PROJECT,
+    PERMISSIONS.VIEW_SUBPROJECT,
+    // Accès aux sous-projets et confirmation
+    PERMISSIONS.CREATE_SUBPROJECT,
+    PERMISSIONS.CONFIRM_SUBPROJECT,
+    // Interventions - Accès complet
     PERMISSIONS.VIEW_INTERVENTIONS,
-    PERMISSIONS.CREATE_INTERVENTIONS,
+    PERMISSIONS.CREATE_INTERVENTION,
     PERMISSIONS.EDIT_INTERVENTIONS,
-    PERMISSIONS.VIEW_USERS,
+    PERMISSIONS.ASSIGN_INTERVENTION,
+    PERMISSIONS.VALIDATE_INTERVENTION,
+    // Analytics
     PERMISSIONS.VIEW_ANALYTICS,
     PERMISSIONS.VIEW_REPORTS,
     PERMISSIONS.VIEW_PREDICTIVE_KPI,
     PERMISSIONS.VIEW_ENHANCED_ANALYTICS,
-    PERMISSIONS.VIEW_INTELLIGENT_SCHEDULER,
+    PERMISSIONS.USE_INTELLIGENT_SCHEDULER,
     PERMISSIONS.VIEW_GAMIFICATION,
-    PERMISSIONS.VIEW_AI_ASSISTANT
+    PERMISSIONS.USE_AI_ASSISTANT
   ],
   [USER_ROLES.TECHNICIEN_CURATIF]: [
     // Interventions curatives - accès complet
@@ -168,9 +176,8 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_SUBPROJECT,
     PERMISSIONS.CREATE_SUBPROJECT, // Peut créer des sous-projets pour composants
     
-    // Interventions - lecture et création pour PDR
+    // Interventions - lecture seule pour PDR
     PERMISSIONS.VIEW_INTERVENTIONS,
-    PERMISSIONS.CREATE_INTERVENTION, // Pour interventions liées aux composants
     
     // Bons de travail - accès pour gestion composants
     PERMISSIONS.VIEW_WORK_ORDERS,
@@ -331,30 +338,43 @@ export const SecurityProvider = ({ children }) => {
     dispatch({ type: SECURITY_ACTIONS.SET_LOADING, payload: true });
     
     try {
-      const response = await fetch('http://localhost:8089/PI/user/login', {
+      const API_URL = getApiBaseURL();
+      console.log('🔐 Tentative de connexion à:', `${API_URL}/user/login`);
+      
+      const response = await fetch(`${API_URL}/user/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials)
       });
 
       if (response.ok) {
-        const userData = await response.json();
+        const responseData = await response.json();
+        const { token, ...userData } = responseData;
         
-        // Stocker dans localStorage pour persistance
+        if (!token) {
+          throw new Error('Aucun token reçu du serveur');
+        }
+        
+        // Stocker le token et les données utilisateur
+        localStorage.setItem('sagemcom_token', token);
         localStorage.setItem('sagemcom_user', JSON.stringify(userData));
         localStorage.setItem('sagemcom_login_time', Date.now().toString());
         
+        // Mettre à jour l'état avec les données utilisateur
         dispatch({ type: SECURITY_ACTIONS.SET_USER, payload: userData });
+        
+        // Journalisation de l'audit
         dispatch({ 
           type: SECURITY_ACTIONS.ADD_AUDIT_LOG, 
           payload: {
             action: 'LOGIN_SUCCESS',
-            details: `Successful login for ${userData.email}`,
+            details: `Connexion réussie pour ${userData.email}`,
             ipAddress: await getClientIP()
           }
         });
         
-        return { success: true, user: userData };
+        console.log('✅ Connexion réussie. Token JWT stocké.');
+        return { success: true, user: userData, token };
       } else {
         const error = 'Identifiants invalides';
         dispatch({ 
@@ -376,9 +396,25 @@ export const SecurityProvider = ({ children }) => {
 
   // Logout avec audit
   const logout = () => {
+    // Supprimer toutes les données d'authentification
+    localStorage.removeItem('sagemcom_token');
     localStorage.removeItem('sagemcom_user');
     localStorage.removeItem('sagemcom_login_time');
+    
+    // Journalisation de la déconnexion
+    dispatch({ 
+      type: SECURITY_ACTIONS.ADD_AUDIT_LOG,
+      payload: {
+        action: 'LOGOUT',
+        details: 'Utilisateur déconnecté',
+        ipAddress: 'localhost'
+      }
+    });
+    
+    // Mettre à jour l'état
     dispatch({ type: SECURITY_ACTIONS.LOGOUT });
+    
+    console.log('✅ Déconnexion réussie. Données supprimées.');
   };
 
   // Audit d'action

@@ -117,354 +117,270 @@ const Modal = ({ isOpen, onClose, children }) => {
 };
 
 // Composant pour afficher la table
-const Table = ({ data, currentPage, itemsPerPage, indexOfFirstItem, indexOfLastItem, onEdit, onDelete }) => {
+const Table = ({
+  data,
+  currentPage,
+  itemsPerPage,
+  indexOfFirstItem,
+  indexOfLastItem,
+  onEdit,
+  onDelete,
+}) => {
   const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
-    <div style={{
-      background: "linear-gradient(145deg, #ffffff, #f8fafc)",
-      borderRadius: "1rem",
-      overflow: "hidden",
-      boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-      border: "1px solid rgba(0, 48, 97, 0.1)",
-      animation: "fadeInUp 0.6s ease-out"
-    }}>
-      <table style={{ 
-        width: "100%", 
-        backgroundColor: "transparent", 
-        borderCollapse: "separate",
-        borderSpacing: "0"
-      }}>
+    <div
+      style={{
+        background: "linear-gradient(145deg, #ffffff, #f8fafc)",
+        borderRadius: "1rem",
+        overflow: "hidden",
+        boxShadow:
+          "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        border: "1px solid rgba(0, 48, 97, 0.1)",
+      }}
+    >
+      <table
+        style={{
+          width: "100%",
+          backgroundColor: "transparent",
+          borderCollapse: "separate",
+          borderSpacing: "0",
+        }}
+      >
         <thead>
-          <tr style={{
-            background: "#003061",
-            position: "relative"
-          }}>
-            <th style={{
-              background: "transparent",
-              color: "white",
-              border: "none",
-              padding: "1rem 1.25rem",
-              textAlign: "left",
-              fontSize: "0.875rem",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              position: "relative",
-              borderBottom: "2px solid rgba(255, 255, 255, 0.2)"
-            }}>
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                📦 Article
-              </span>
-            </th>
-            <th style={{
-              background: "transparent",
-              color: "white",
-              border: "none",
-              padding: "1rem 1.25rem",
-              textAlign: "left",
-              fontSize: "0.875rem",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              borderBottom: "2px solid rgba(255, 255, 255, 0.2)"
-            }}>
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                🏷️ ATL
-              </span>
-            </th>
-            <th style={{
-              background: "transparent",
-              color: "white",
-              border: "none",
-              padding: "1rem 1.25rem",
-              textAlign: "left",
-              fontSize: "0.875rem",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              borderBottom: "2px solid rgba(255, 255, 255, 0.2)"
-            }}>
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                🏢 BUR
-              </span>
-            </th>
-            <th style={{
-              background: "transparent",
-              color: "white",
-              border: "none",
-              padding: "1rem 1.25rem",
-              textAlign: "left",
-              fontSize: "0.875rem",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              borderBottom: "2px solid rgba(255, 255, 255, 0.2)"
-            }}>
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                📝 Désignation
-              </span>
-            </th>
-            <th style={{
-              background: "transparent",
-              color: "white",
-              border: "none",
-              padding: "1rem 1.25rem",
-              textAlign: "left",
-              fontSize: "0.875rem",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              borderBottom: "2px solid rgba(255, 255, 255, 0.2)"
-            }}>
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                🔢 Quantité
-              </span>
-            </th>
-            <th style={{
-              background: "transparent",
-              color: "white",
-              border: "none",
-              padding: "1rem 1.25rem",
-              textAlign: "left",
-              fontSize: "0.875rem",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              borderBottom: "2px solid rgba(255, 255, 255, 0.2)"
-            }}>
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                💰 Prix
-              </span>
-            </th>
-            <th style={{
-              background: "transparent",
-              color: "white",
-              border: "none",
-              padding: "1rem 1.25rem",
-              textAlign: "center",
-              fontSize: "0.875rem",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              borderBottom: "2px solid rgba(255, 255, 255, 0.2)"
-            }}>
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem"
-              }}>
-                ⚡ Actions
-              </span>
-            </th>
+          <tr style={{ background: "#003061", position: "relative" }}>
+            {[
+              "📦 Article",
+              "🏷️ ATL",
+              "🏢 BUR",
+              "📝 Désignation",
+              "🔢 Quantité",
+              "💰 Prix",
+              "⚡ Actions",
+            ].map((head, i) => (
+              <th
+                key={i}
+                style={{
+                  background: "transparent",
+                  color: "white",
+                  border: "none",
+                  padding: "1rem 1.25rem",
+                  textAlign: i === 6 ? "center" : "left",
+                  fontSize: "0.875rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  borderBottom: "2px solid rgba(255, 255, 255, 0.2)",
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    justifyContent: i === 6 ? "center" : "flex-start",
+                  }}
+                >
+                  {head}
+                </span>
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {currentItems.map((item, index) => (
-            <tr 
+            <tr
               key={index}
               style={{
-                background: index % 2 === 0 
-                  ? "linear-gradient(145deg, #ffffff, #f8fafc)" 
-                  : "linear-gradient(145deg, #f8fafc, #ffffff)",
-                transition: "all 0.3s ease",
-                position: "relative"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "linear-gradient(145deg, #e0f2fe, #f0f9ff)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 8px 25px rgba(0, 48, 97, 0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = index % 2 === 0 
-                  ? "linear-gradient(145deg, #ffffff, #f8fafc)" 
-                  : "linear-gradient(145deg, #f8fafc, #ffffff)";
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
+                background:
+                  index % 2 === 0
+                    ? "linear-gradient(145deg, #ffffff, #f8fafc)"
+                    : "linear-gradient(145deg, #f8fafc, #ffffff)",
+                position: "relative",
               }}
             >
-              <td style={{
-                border: "none",
-                borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
-                padding: "1rem 1.25rem",
-                textAlign: "left",
-                fontSize: "0.875rem",
-                fontWeight: "600",
-                color: "#1f2937",
-                position: "relative"
-              }}>
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem"
-                }}>
-                  <div style={{
-                    width: "0.5rem",
-                    height: "0.5rem",
-                    background: "#003061",
-                    borderRadius: "50%",
-                    animation: "pulse 2s infinite"
-                  }}></div>
-                  <span style={{
-                    fontFamily: "monospace",
-                    color: "#003061",
-                    fontWeight: "700"
-                  }}>
+              <td
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
+                  padding: "1rem 1.25rem",
+                  textAlign: "left",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#1f2937",
+                  position: "relative",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <div
+                    style={{
+                      width: "0.5rem",
+                      height: "0.5rem",
+                      background: "#003061",
+                      borderRadius: "50%",
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      color: "#003061",
+                      fontWeight: 700,
+                    }}
+                  >
                     {item.trartArticle}
                   </span>
                 </div>
               </td>
-              <td style={{
-                border: "none",
-                borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
-                padding: "1rem 1.25rem",
-                textAlign: "left",
-                fontSize: "0.875rem",
-                fontWeight: "500",
-                color: "#374151"
-              }}>
-                <span style={{
-                  background: "linear-gradient(135deg, #e0f2fe, #f0f9ff)",
-                  padding: "0.25rem 0.75rem",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.75rem",
-                  fontWeight: "600",
-                  color: "#0369a1",
-                  border: "1px solid rgba(3, 105, 161, 0.2)"
-                }}>
+
+              <td
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
+                  padding: "1rem 1.25rem",
+                  textAlign: "left",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  color: "#374151",
+                }}
+              >
+                <span
+                  style={{
+                    background: "linear-gradient(135deg, #e0f2fe, #f0f9ff)",
+                    padding: "0.25rem 0.75rem",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: "#0369a1",
+                    border: "1px solid rgba(3, 105, 161, 0.2)",
+                  }}
+                >
                   {item.atl}
                 </span>
               </td>
-              <td style={{
-                border: "none",
-                borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
-                padding: "1rem 1.25rem",
-                textAlign: "left",
-                fontSize: "0.875rem",
-                fontWeight: "500",
-                color: "#374151"
-              }}>
-                <span style={{
-                  background: "linear-gradient(135deg, #fef3c7, #fef9e7)",
-                  padding: "0.25rem 0.75rem",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.75rem",
-                  fontWeight: "600",
-                  color: "#d97706",
-                  border: "1px solid rgba(217, 119, 6, 0.2)"
-                }}>
+
+              <td
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
+                  padding: "1rem 1.25rem",
+                  textAlign: "left",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  color: "#374151",
+                }}
+              >
+                <span
+                  style={{
+                    background: "linear-gradient(135deg, #fef3c7, #fef9e7)",
+                    padding: "0.25rem 0.75rem",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: "#d97706",
+                    border: "1px solid rgba(217, 119, 6, 0.2)",
+                  }}
+                >
                   {item.bur}
                 </span>
               </td>
-              <td style={{
-                border: "none",
-                borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
-                padding: "1rem 1.25rem",
-                textAlign: "left",
-                fontSize: "0.875rem",
-                fontWeight: "500",
-                color: "#374151",
-                maxWidth: "200px"
-              }}>
-                <div style={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  lineHeight: "1.5"
-                }}>
+
+              <td
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
+                  padding: "1rem 1.25rem",
+                  textAlign: "left",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  color: "#374151",
+                  maxWidth: "200px",
+                }}
+              >
+                <div
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    lineHeight: "1.5",
+                  }}
+                >
                   {item.trartDesignation}
                 </div>
               </td>
-              <td style={{
-                border: "none",
-                borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
-                padding: "1rem 1.25rem",
-                textAlign: "left",
-                fontSize: "0.875rem",
-                fontWeight: "600",
-                color: "#374151"
-              }}>
-                <div style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  background: item.trartQuantite < 10 
-                    ? "linear-gradient(135deg, #fef2f2, #fef7f7)" 
-                    : "linear-gradient(135deg, #f0fdf4, #f7fef9)",
-                  padding: "0.375rem 0.75rem",
-                  borderRadius: "0.5rem",
-                  border: item.trartQuantite < 10 
-                    ? "1px solid rgba(239, 68, 68, 0.2)" 
-                    : "1px solid rgba(34, 197, 94, 0.2)",
-                  color: item.trartQuantite < 10 ? "#dc2626" : "#16a34a"
-                }}>
-                  <span style={{
-                    fontSize: "0.75rem"
-                  }}>
+
+              <td
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
+                  padding: "1rem 1.25rem",
+                  textAlign: "left",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                }}
+              >
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    background:
+                      item.trartQuantite < 10
+                        ? "linear-gradient(135deg, #fef2f2, #fef7f7)"
+                        : "linear-gradient(135deg, #f0fdf4, #f7fef9)",
+                    padding: "0.375rem 0.75rem",
+                    borderRadius: "0.5rem",
+                    border:
+                      item.trartQuantite < 10
+                        ? "1px solid rgba(239, 68, 68, 0.2)"
+                        : "1px solid rgba(34, 197, 94, 0.2)",
+                    color: item.trartQuantite < 10 ? "#dc2626" : "#16a34a",
+                  }}
+                >
+                  <span style={{ fontSize: "0.75rem" }}>
                     {item.trartQuantite < 10 ? "⚠️" : "✅"}
                   </span>
                   {item.trartQuantite}
                 </div>
               </td>
-              <td style={{
-                border: "none",
-                borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
-                padding: "1rem 1.25rem",
-                textAlign: "left",
-                fontSize: "0.875rem",
-                fontWeight: "600",
-                color: "#374151"
-              }}>
-                <span style={{
-                  background: "linear-gradient(135deg, #ecfdf5, #f0fdf4)",
-                  padding: "0.375rem 0.75rem",
-                  borderRadius: "0.5rem",
+
+              <td
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
+                  padding: "1rem 1.25rem",
+                  textAlign: "left",
                   fontSize: "0.875rem",
-                  fontWeight: "700",
-                  color: "#059669",
-                  border: "1px solid rgba(5, 150, 105, 0.2)",
-                  fontFamily: "monospace"
-                }}>
+                  fontWeight: 600,
+                  color: "#374151",
+                }}
+              >
+                <span
+                  style={{
+                    background: "linear-gradient(135deg, #ecfdf5, #f0fdf4)",
+                    padding: "0.375rem 0.75rem",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    fontWeight: 700,
+                    color: "#059669",
+                    border: "1px solid rgba(5, 150, 105, 0.2)",
+                    fontFamily: "monospace",
+                  }}
+                >
                   {item.prix}€
                 </span>
               </td>
-              <td style={{
-                border: "none",
-                borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
-                padding: "1rem 1.25rem",
-                textAlign: "center",
-                fontSize: "0.875rem"
-              }}>
-                <div style={{ 
-                  display: "flex", 
-                  justifyContent: "center",
-                  gap: "0.5rem"
-                }}>
+
+              <td
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid rgba(0, 48, 97, 0.1)",
+                  padding: "1rem 1.25rem",
+                  textAlign: "center",
+                  fontSize: "0.875rem",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}>
                   <button
                     onClick={() => onEdit(item)}
                     style={{
@@ -474,21 +390,10 @@ const Table = ({ data, currentPage, itemsPerPage, indexOfFirstItem, indexOfLastI
                       borderRadius: "0.5rem",
                       padding: "0.5rem",
                       cursor: "pointer",
-                      transition: "all 0.3s ease",
                       boxShadow: "0 4px 6px rgba(0, 48, 97, 0.3)",
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center"
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.transform = "translateY(-2px) scale(1.1)";
-                      e.target.style.boxShadow = "0 8px 15px rgba(0, 48, 97, 0.4)";
-                      e.target.style.backgroundColor = "#002244";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.transform = "translateY(0) scale(1)";
-                      e.target.style.boxShadow = "0 4px 6px rgba(0, 48, 97, 0.3)";
-                      e.target.style.backgroundColor = "#003061";
+                      justifyContent: "center",
                     }}
                   >
                     <EditIcon />
@@ -502,19 +407,10 @@ const Table = ({ data, currentPage, itemsPerPage, indexOfFirstItem, indexOfLastI
                       borderRadius: "0.5rem",
                       padding: "0.5rem",
                       cursor: "pointer",
-                      transition: "all 0.3s ease",
                       boxShadow: "0 4px 6px rgba(239, 68, 68, 0.3)",
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center"
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.transform = "translateY(-2px) scale(1.1)";
-                      e.target.style.boxShadow = "0 8px 15px rgba(239, 68, 68, 0.4)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.transform = "translateY(0) scale(1)";
-                      e.target.style.boxShadow = "0 4px 6px rgba(239, 68, 68, 0.3)";
+                      justifyContent: "center",
                     }}
                   >
                     <DeleteIcon />
@@ -547,7 +443,8 @@ const SearchAndAddCard = ({ onAddComponent, onSearch }) => {
         wordWrap: "break-word",
         width: "100%",
         marginBottom: "1.5rem",
-        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        boxShadow:
+          "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
         borderRadius: "0.375rem",
         backgroundColor: "#ffffff",
       }}
@@ -561,7 +458,14 @@ const SearchAndAddCard = ({ onAddComponent, onSearch }) => {
           backgroundColor: "#f7fafc",
         }}
       >
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center" }}>
             <input
               type="text"
@@ -578,6 +482,7 @@ const SearchAndAddCard = ({ onAddComponent, onSearch }) => {
             />
           </div>
           <button
+            type="button"
             onClick={onAddComponent}
             style={{
               backgroundColor: "#003366",
@@ -586,12 +491,9 @@ const SearchAndAddCard = ({ onAddComponent, onSearch }) => {
               borderRadius: "0.375rem",
               padding: "0.5rem 1rem",
               cursor: "pointer",
-              fontWeight: "600",
+              fontWeight: 600,
               fontSize: "1rem",
-              transition: "background-color 0.3s ease",
             }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#002244")}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = "#003366")}
           >
             Ajouter un composant
           </button>
@@ -638,7 +540,7 @@ const Maps = () => {
     }
 
     try {
-      const response = await fetch(`${API_SEARCH}?trartArticle=${searchTerm}`);
+      const response = await fetch(`${API_SEARCH}?trartArticle=${encodeURIComponent(searchTerm)}`);
       if (!response.ok) {
         throw new Error("Erreur lors de la recherche");
       }
@@ -652,6 +554,12 @@ const Maps = () => {
 
   const handleSave = async (componentData) => {
     try {
+      // Optionnel: convertir les champs numériques (si attendu par le backend)
+      if (componentData.trartQuantite !== undefined)
+        componentData.trartQuantite = Number(componentData.trartQuantite);
+      if (componentData.prix !== undefined)
+        componentData.prix = Number(componentData.prix);
+
       const response = await fetch(API_ADD_OR_UPDATE, {
         method: "POST",
         headers: {
@@ -664,8 +572,7 @@ const Maps = () => {
         throw new Error("Erreur lors de l'ajout ou de la mise à jour du composant");
       }
 
-      const result = await response.json();
-      console.log("Succès :", result);
+      await response.json();
       fetchData();
       closeModal();
     } catch (error) {
@@ -676,15 +583,15 @@ const Maps = () => {
   const handleDelete = async () => {
     if (componentToDelete) {
       try {
-        const response = await fetch(`${API_DELETE}/${componentToDelete.trartArticle}`, {
-          method: "DELETE",
-        });
+        const response = await fetch(
+          `${API_DELETE}/${encodeURIComponent(componentToDelete.trartArticle)}`,
+          { method: "DELETE" }
+        );
 
         if (!response.ok) {
           throw new Error("Erreur lors de la suppression du composant");
         }
 
-        console.log("Composant supprimé avec succès");
         fetchData();
         closeDeleteModal();
       } catch (error) {
@@ -747,161 +654,78 @@ const Maps = () => {
 
   return (
     <>
-      {/* Animations CSS globales */}
-      <style jsx global>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes slideInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes pulse {
-          0%, 100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.05);
-          }
-        }
-        
-        @keyframes shimmer {
-          0% {
-            background-position: -200px 0;
-          }
-          100% {
-            background-position: calc(200px + 100%) 0;
-          }
-        }
-        
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-      `}</style>
-      
-      <div 
+      <div
         style={{
-          position: 'relative',
-          padding: '40px',
-          maxWidth: '1400px',
-          margin: '0 auto',
-          fontFamily: 'Poppins, sans-serif',
-          background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-          borderRadius: '24px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-          animation: 'fadeInUp 0.8s ease-out',
-          overflow: 'hidden'
+          position: "relative",
+          padding: "40px",
+          maxWidth: "1400px",
+          margin: "0 auto",
+          fontFamily: "Poppins, sans-serif",
+          background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+          borderRadius: "24px",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+          overflow: "hidden",
         }}
       >
-        {/* Éléments décoratifs flottants */}
-        <div 
+        <div
           style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            width: '100px',
-            height: '100px',
-            background: 'linear-gradient(45deg, #003061, #004B8D)',
-            borderRadius: '50%',
-            opacity: '0.1',
-            animation: 'float 4s ease-in-out infinite'
-          }}
-        />
-        <div 
-          style={{
-            position: 'absolute',
-            bottom: '30px',
-            left: '30px',
-            width: '60px',
-            height: '60px',
-            background: 'linear-gradient(45deg, #006BB6, #3399CC)',
-            borderRadius: '50%',
-            opacity: '0.1',
-            animation: 'float 3s ease-in-out infinite reverse'
-          }}
-        />
-        
-        <div 
-          style={{
-            backgroundColor: '#ffffff',
-            padding: '40px',
-            borderRadius: '20px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
-            position: 'relative',
-            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            animation: 'slideInLeft 0.8s ease-out 0.2s both'
+            backgroundColor: "#ffffff",
+            padding: "40px",
+            borderRadius: "20px",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+            position: "relative",
+            background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+            border: "1px solid rgba(255,255,255,0.2)",
           }}
         >
-          {/* En-tête moderne avec animations */}
-          <div 
+          {/* En-tête */}
+          <div
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '32px',
-              flexWrap: 'wrap',
-              gap: '16px',
-              padding: '20px 0',
-              borderBottom: '2px solid rgba(0, 48, 97, 0.1)',
-              animation: 'fadeInUp 0.8s ease-out 0.4s both'
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "32px",
+              flexWrap: "wrap",
+              gap: "16px",
+              padding: "20px 0",
+              borderBottom: "2px solid rgba(0, 48, 97, 0.1)",
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div 
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div
                 style={{
-                  width: '60px',
-                  height: '60px',
-                  background: '#003061',
-                  borderRadius: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '24px',
-                  animation: 'pulse 2s infinite',
-                  boxShadow: '0 8px 25px rgba(0, 48, 97, 0.3)'
+                  width: "60px",
+                  height: "60px",
+                  background: "#003061",
+                  borderRadius: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "24px",
+                  boxShadow: "0 8px 25px rgba(0, 48, 97, 0.3)",
+                  color: "#fff",
                 }}
               >
                 🔧
               </div>
               <div>
-                <h2 
+                <h2
                   style={{
-                    fontSize: '32px',
-                    fontWeight: '700',
-                    color: '#003061',
-                    margin: '0',
-                    letterSpacing: '-0.5px'
+                    fontSize: "32px",
+                    fontWeight: 700,
+                    color: "#003061",
+                    margin: 0,
+                    letterSpacing: "-0.5px",
                   }}
                 >
                   Gestion des Composants
                 </h2>
-                <p 
+                <p
                   style={{
-                    fontSize: '16px',
-                    color: '#64748b',
-                    margin: '4px 0 0 0',
-                    fontWeight: '500'
+                    fontSize: "16px",
+                    color: "#64748b",
+                    margin: "4px 0 0 0",
+                    fontWeight: 500,
                   }}
                 >
                   Gestion intelligente des pièces et composants
@@ -923,332 +747,261 @@ const Maps = () => {
               onDelete={openDeleteModal}
             />
 
-        {/* Section de pagination moderne et dynamique */}
-        <div style={{
-          background: "linear-gradient(145deg, #ffffff, #f8fafc)",
-          borderRadius: "1rem",
-          padding: "1.5rem 2rem",
-          marginTop: "1.5rem",
-          boxShadow: "0 10px 25px rgba(0, 48, 97, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)",
-          border: "1px solid rgba(0, 48, 97, 0.1)",
-          animation: "fadeInUp 0.8s ease-out",
-          position: "relative",
-          overflow: "hidden"
-        }}>
-          {/* Éléments décoratifs flottants */}
-          <div style={{
-            position: "absolute",
-            top: "-50px",
-            right: "-50px",
-            width: "100px",
-            height: "100px",
-            background: "rgba(0, 48, 97, 0.1)",
-            borderRadius: "50%",
-            animation: "float 6s ease-in-out infinite"
-          }}></div>
-          <div style={{
-            position: "absolute",
-            bottom: "-30px",
-            left: "-30px",
-            width: "60px",
-            height: "60px",
-            background: "rgba(0, 48, 97, 0.1)",
-            borderRadius: "50%",
-            animation: "float 4s ease-in-out infinite reverse"
-          }}></div>
-
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "1rem",
-            position: "relative",
-            zIndex: 1
-          }}>
-            {/* Section Items per page */}
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-              background: "linear-gradient(135deg, #f0f9ff, #e0f2fe)",
-              padding: "0.75rem 1.25rem",
-              borderRadius: "0.75rem",
-              border: "1px solid rgba(3, 105, 161, 0.2)",
-              animation: "slideInLeft 0.6s ease-out"
-            }}>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                <span style={{
-                  fontSize: "0.75rem",
-                  color: "#0369a1",
-                  fontWeight: "600",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em"
-                }}>📄 Items par page:</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={handleItemsPerPageChange}
+            {/* Section de pagination */}
+            <div
+              style={{
+                background: "linear-gradient(145deg, #ffffff, #f8fafc)",
+                borderRadius: "1rem",
+                padding: "1.5rem 2rem",
+                marginTop: "1.5rem",
+                boxShadow:
+                  "0 10px 25px rgba(0, 48, 97, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)",
+                border: "1px solid rgba(0, 48, 97, 0.1)",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "1rem",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                {/* Items per page */}
+                <div
                   style={{
-                    fontSize: "0.875rem",
-                    fontWeight: "600",
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.5rem",
-                    border: "2px solid #0369a1",
-                    background: "linear-gradient(135deg, #ffffff, #f8fafc)",
-                    color: "#0369a1",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    outline: "none",
-                    boxShadow: "0 2px 4px rgba(3, 105, 161, 0.1)"
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.transform = "scale(1.05)";
-                    e.target.style.boxShadow = "0 4px 12px rgba(3, 105, 161, 0.3)";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.transform = "scale(1)";
-                    e.target.style.boxShadow = "0 2px 4px rgba(3, 105, 161, 0.1)";
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                    background: "linear-gradient(135deg, #f0f9ff, #e0f2fe)",
+                    padding: "0.75rem 1.25rem",
+                    borderRadius: "0.75rem",
+                    border: "1px solid rgba(3, 105, 161, 0.2)",
                   }}
                 >
-                  {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-                    <option key={option} value={option} style={{
-                      background: "#ffffff",
-                      color: "#0369a1",
-                      fontWeight: "600"
-                    }}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#0369a1",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      📄 Items par page:
+                    </span>
+                    <select
+                      value={itemsPerPage}
+                      onChange={handleItemsPerPageChange}
+                      style={{
+                        fontSize: "0.875rem",
+                        fontWeight: 600,
+                        padding: "0.5rem 1rem",
+                        borderRadius: "0.5rem",
+                        border: "2px solid #0369a1",
+                        background: "linear-gradient(135deg, #ffffff, #f8fafc)",
+                        color: "#0369a1",
+                        cursor: "pointer",
+                        outline: "none",
+                        boxShadow: "0 2px 4px rgba(3, 105, 161, 0.1)",
+                      }}
+                    >
+                      {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                        <option
+                          key={option}
+                          value={option}
+                          style={{ background: "#ffffff", color: "#0369a1", fontWeight: 600 }}
+                        >
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-            {/* Section informations de pagination */}
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-              background: "linear-gradient(135deg, #ecfdf5, #f0fdf4)",
-              padding: "0.75rem 1.25rem",
-              borderRadius: "0.75rem",
-              border: "1px solid rgba(34, 197, 94, 0.2)",
-              animation: "fadeInUp 0.8s ease-out 0.2s both"
-            }}>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
-                <span style={{
-                  fontSize: "0.75rem",
-                  color: "#16a34a",
-                  fontWeight: "600",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em"
-                }}>📊 Affichage:</span>
-                <div style={{
-                  background: "linear-gradient(135deg, #ffffff, #f8fafc)",
-                  padding: "0.375rem 0.75rem",
-                  borderRadius: "0.5rem",
-                  border: "1px solid rgba(34, 197, 94, 0.3)",
-                  fontSize: "0.875rem",
-                  fontWeight: "700",
-                  color: "#16a34a",
-                  fontFamily: "monospace",
-                  boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.05)"
-                }}>
-                  {indexOfFirstItem + 1} – {Math.min(indexOfLastItem, data.length)} sur {data.length}
+                {/* Infos pagination */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                    background: "linear-gradient(135deg, #ecfdf5, #f0fdf4)",
+                    padding: "0.75rem 1.25rem",
+                    borderRadius: "0.75rem",
+                    border: "1px solid rgba(34, 197, 94, 0.2)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#16a34a",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      📊 Affichage:
+                    </span>
+                    <div
+                      style={{
+                        background: "linear-gradient(135deg, #ffffff, #f8fafc)",
+                        padding: "0.375rem 0.75rem",
+                        borderRadius: "0.5rem",
+                        border: "1px solid rgba(34, 197, 94, 0.3)",
+                        fontSize: "0.875rem",
+                        fontWeight: 700,
+                        color: "#16a34a",
+                        fontFamily: "monospace",
+                        boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.05)",
+                      }}
+                    >
+                      {indexOfFirstItem + 1} – {Math.min(indexOfLastItem, data.length)} sur {data.length}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Boutons de navigation */}
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <button
+                    style={{
+                      background: currentPage === 1 ? "linear-gradient(135deg, #9ca3af, #6b7280)" : "#003061",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "0.75rem",
+                      padding: "0.75rem 1rem",
+                      cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                      boxShadow:
+                        currentPage === 1
+                          ? "0 2px 4px rgba(156, 163, 175, 0.3)"
+                          : "0 4px 12px rgba(0, 48, 97, 0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <PreviousIcon />
+                    <span style={{ marginLeft: "0.5rem", fontSize: "0.875rem", fontWeight: 600 }}>
+                      Précédent
+                    </span>
+                  </button>
+
+                  {/* Indicateur de page */}
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, #fef3c7, #fef9e7)",
+                      border: "2px solid #f59e0b",
+                      borderRadius: "0.75rem",
+                      padding: "0.75rem 1.25rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)",
+                    }}
+                  >
+                    <span style={{ fontSize: "0.75rem", color: "#d97706", fontWeight: 600, textTransform: "uppercase" }}>
+                      Page
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "1rem",
+                        fontWeight: 700,
+                        color: "#d97706",
+                        fontFamily: "monospace",
+                      }}
+                    >
+                      {currentPage}
+                    </span>
+                    <span style={{ fontSize: "0.75rem", color: "#d97706", fontWeight: 600 }}>
+                      / {totalPages}
+                    </span>
+                  </div>
+
+                  <button
+                    style={{
+                      background:
+                        currentPage === totalPages
+                          ? "linear-gradient(135deg, #9ca3af, #6b7280)"
+                          : "#003061",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "0.75rem",
+                      padding: "0.75rem 1rem",
+                      cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                      boxShadow:
+                        currentPage === totalPages
+                          ? "0 2px 4px rgba(156, 163, 175, 0.3)"
+                          : "0 4px 12px rgba(0, 48, 97, 0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <span style={{ marginRight: "0.5rem", fontSize: "0.875rem", fontWeight: 600 }}>
+                      Suivant
+                    </span>
+                    <NextIcon />
+                  </button>
                 </div>
               </div>
             </div>
-
-            {/* Boutons de navigation */}
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              animation: "slideInLeft 0.8s ease-out 0.4s both"
-            }}>
-              <button
-                style={{
-                  background: currentPage === 1 
-                    ? "linear-gradient(135deg, #9ca3af, #6b7280)" 
-                    : "#003061",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "0.75rem",
-                  padding: "0.75rem 1rem",
-                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                  transition: "all 0.3s ease",
-                  boxShadow: currentPage === 1 
-                    ? "0 2px 4px rgba(156, 163, 175, 0.3)" 
-                    : "0 4px 12px rgba(0, 48, 97, 0.3)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                  overflow: "hidden"
-                }}
-                onMouseEnter={(e) => {
-                  if (currentPage !== 1) {
-                    e.target.style.transform = "translateY(-2px) scale(1.05)";
-                    e.target.style.boxShadow = "0 8px 20px rgba(0, 48, 97, 0.4)";
-                    e.target.style.backgroundColor = "#002244";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (currentPage !== 1) {
-                    e.target.style.transform = "translateY(0) scale(1)";
-                    e.target.style.boxShadow = "0 4px 12px rgba(0, 48, 97, 0.3)";
-                    e.target.style.backgroundColor = "#003061";
-                  }
-                }}
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                <PreviousIcon />
-                <span style={{
-                  marginLeft: "0.5rem",
-                  fontSize: "0.875rem",
-                  fontWeight: "600"
-                }}>Précédent</span>
-              </button>
-
-              {/* Indicateur de page actuelle */}
-              <div style={{
-                background: "linear-gradient(135deg, #fef3c7, #fef9e7)",
-                border: "2px solid #f59e0b",
-                borderRadius: "0.75rem",
-                padding: "0.75rem 1.25rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                animation: "pulse 2s infinite",
-                boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)"
-              }}>
-                <span style={{
-                  fontSize: "0.75rem",
-                  color: "#d97706",
-                  fontWeight: "600",
-                  textTransform: "uppercase"
-                }}>Page</span>
-                <span style={{
-                  fontSize: "1rem",
-                  fontWeight: "700",
-                  color: "#d97706",
-                  fontFamily: "monospace"
-                }}>{currentPage}</span>
-                <span style={{
-                  fontSize: "0.75rem",
-                  color: "#d97706",
-                  fontWeight: "600"
-                }}>/ {totalPages}</span>
-              </div>
-
-              <button
-                style={{
-                  background: currentPage === totalPages 
-                    ? "linear-gradient(135deg, #9ca3af, #6b7280)" 
-                    : "#003061",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "0.75rem",
-                  padding: "0.75rem 1rem",
-                  cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-                  transition: "all 0.3s ease",
-                  boxShadow: currentPage === totalPages 
-                    ? "0 2px 4px rgba(156, 163, 175, 0.3)" 
-                    : "0 4px 12px rgba(0, 48, 97, 0.3)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                  overflow: "hidden"
-                }}
-                onMouseEnter={(e) => {
-                  if (currentPage !== totalPages) {
-                    e.target.style.transform = "translateY(-2px) scale(1.05)";
-                    e.target.style.boxShadow = "0 8px 20px rgba(0, 48, 97, 0.4)";
-                    e.target.style.backgroundColor = "#002244";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (currentPage !== totalPages) {
-                    e.target.style.transform = "translateY(0) scale(1)";
-                    e.target.style.boxShadow = "0 4px 12px rgba(0, 48, 97, 0.3)";
-                    e.target.style.backgroundColor = "#003061";
-                  }
-                }}
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                <span style={{
-                  marginRight: "0.5rem",
-                  fontSize: "0.875rem",
-                  fontWeight: "600"
-                }}>Suivant</span>
-                <NextIcon />
-              </button>
-            </div>
-          </div>
-        </div>
           </div>
         </div>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
-        {/* Header avec icône et animation */}
-        <div style={{
-          textAlign: "center",
-          marginBottom: "2rem",
-          position: "relative",
-          overflow: "hidden"
-        }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "4rem",
-            height: "4rem",
-            background: "linear-gradient(135deg, #003061, #0066cc)",
-            borderRadius: "50%",
-            marginBottom: "1rem",
-            animation: "pulse 2s infinite",
-            boxShadow: "0 8px 32px rgba(0, 48, 97, 0.3)"
-          }}>
-            <span style={{
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "2rem", position: "relative", overflow: "hidden" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "4rem",
+              height: "4rem",
+              background: "linear-gradient(135deg, #003061, #0066cc)",
+              borderRadius: "50%",
+              marginBottom: "1rem",
+              boxShadow: "0 8px 32px rgba(0, 48, 97, 0.3)",
+              color: "#fff",
+              fontWeight: "bold",
               fontSize: "1.5rem",
-              color: "white",
-              fontWeight: "bold"
-            }}>⚙️</span>
+            }}
+          >
+            ⚙️
           </div>
-          <h2 style={{
-            color: "#003061",
-            fontWeight: "700",
-            fontSize: "1.5rem",
-            margin: "0 0 0.5rem 0",
-            background: "linear-gradient(135deg, #003061, #0066cc)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            animation: "slideInLeft 0.6s ease-out"
-          }}>
+          <h2
+            style={{
+              color: "#003061",
+              fontWeight: 700,
+              fontSize: "1.5rem",
+              margin: "0 0 0.5rem 0",
+            }}
+          >
             {selectedComponent ? "✏️ Modifier le composant" : "➕ Ajouter un composant"}
           </h2>
-          <p style={{
-            color: "#64748b",
-            fontSize: "0.875rem",
-            margin: 0,
-            animation: "fadeInUp 0.8s ease-out"
-          }}>
-            {selectedComponent ? "Modifiez les informations du composant" : "Créez un nouveau composant pour votre inventaire"}
+          <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0 }}>
+            {selectedComponent
+              ? "Modifiez les informations du composant"
+              : "Créez un nouveau composant pour votre inventaire"}
           </p>
         </div>
 
-        {/* Formulaire avec design moderne */}
+        {/* Formulaire */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -1260,22 +1013,25 @@ const Maps = () => {
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: "1.5rem",
-            animation: "fadeInUp 0.6s ease-out"
           }}
         >
           {/* Colonne gauche */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {/* Champ Article */}
             <div style={{ position: "relative" }}>
-              <label style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontWeight: "600",
-                color: "#374151",
-                fontSize: "0.875rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em"
-              }}>📦 Article</label>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                  fontSize: "0.875rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                📦 Article
+              </label>
               <input
                 type="text"
                 name="trartArticle"
@@ -1287,35 +1043,28 @@ const Maps = () => {
                   borderRadius: "0.75rem",
                   border: "2px solid #e5e7eb",
                   fontSize: "0.875rem",
-                  transition: "all 0.3s ease",
                   background: "linear-gradient(145deg, #ffffff, #f8fafc)",
                   boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.06)",
-                  outline: "none"
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#003061";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(0, 48, 97, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(-1px)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#e5e7eb";
-                  e.target.style.boxShadow = "inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(0)";
+                  outline: "none",
                 }}
               />
             </div>
 
             {/* Champ ATL */}
             <div style={{ position: "relative" }}>
-              <label style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontWeight: "600",
-                color: "#374151",
-                fontSize: "0.875rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em"
-              }}>🏷️ ATL</label>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                  fontSize: "0.875rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                🏷️ ATL
+              </label>
               <input
                 type="text"
                 name="atl"
@@ -1327,35 +1076,28 @@ const Maps = () => {
                   borderRadius: "0.75rem",
                   border: "2px solid #e5e7eb",
                   fontSize: "0.875rem",
-                  transition: "all 0.3s ease",
                   background: "linear-gradient(145deg, #ffffff, #f8fafc)",
                   boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.06)",
-                  outline: "none"
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#003061";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(0, 48, 97, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(-1px)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#e5e7eb";
-                  e.target.style.boxShadow = "inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(0)";
+                  outline: "none",
                 }}
               />
             </div>
 
             {/* Champ BUR */}
             <div style={{ position: "relative" }}>
-              <label style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontWeight: "600",
-                color: "#374151",
-                fontSize: "0.875rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em"
-              }}>🏢 BUR</label>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                  fontSize: "0.875rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                🏢 BUR
+              </label>
               <input
                 type="text"
                 name="bur"
@@ -1367,20 +1109,9 @@ const Maps = () => {
                   borderRadius: "0.75rem",
                   border: "2px solid #e5e7eb",
                   fontSize: "0.875rem",
-                  transition: "all 0.3s ease",
                   background: "linear-gradient(145deg, #ffffff, #f8fafc)",
                   boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.06)",
-                  outline: "none"
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#003061";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(0, 48, 97, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(-1px)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#e5e7eb";
-                  e.target.style.boxShadow = "inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(0)";
+                  outline: "none",
                 }}
               />
             </div>
@@ -1390,15 +1121,19 @@ const Maps = () => {
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {/* Champ Designation */}
             <div style={{ position: "relative" }}>
-              <label style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontWeight: "600",
-                color: "#374151",
-                fontSize: "0.875rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em"
-              }}>📝 Désignation</label>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                  fontSize: "0.875rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                📝 Désignation
+              </label>
               <input
                 type="text"
                 name="trartDesignation"
@@ -1410,35 +1145,28 @@ const Maps = () => {
                   borderRadius: "0.75rem",
                   border: "2px solid #e5e7eb",
                   fontSize: "0.875rem",
-                  transition: "all 0.3s ease",
                   background: "linear-gradient(145deg, #ffffff, #f8fafc)",
                   boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.06)",
-                  outline: "none"
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#003061";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(0, 48, 97, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(-1px)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#e5e7eb";
-                  e.target.style.boxShadow = "inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(0)";
+                  outline: "none",
                 }}
               />
             </div>
 
             {/* Champ Quantité */}
             <div style={{ position: "relative" }}>
-              <label style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontWeight: "600",
-                color: "#374151",
-                fontSize: "0.875rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em"
-              }}>🔢 Quantité</label>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                  fontSize: "0.875rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                🔢 Quantité
+              </label>
               <input
                 type="number"
                 name="trartQuantite"
@@ -1451,35 +1179,28 @@ const Maps = () => {
                   borderRadius: "0.75rem",
                   border: "2px solid #e5e7eb",
                   fontSize: "0.875rem",
-                  transition: "all 0.3s ease",
                   background: "linear-gradient(145deg, #ffffff, #f8fafc)",
                   boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.06)",
-                  outline: "none"
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#003061";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(0, 48, 97, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(-1px)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#e5e7eb";
-                  e.target.style.boxShadow = "inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(0)";
+                  outline: "none",
                 }}
               />
             </div>
 
             {/* Champ Prix */}
             <div style={{ position: "relative" }}>
-              <label style={{
-                display: "block",
-                marginBottom: "0.5rem",
-                fontWeight: "600",
-                color: "#374151",
-                fontSize: "0.875rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em"
-              }}>💰 Prix</label>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "0.5rem",
+                  fontWeight: 600,
+                  color: "#374151",
+                  fontSize: "0.875rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                💰 Prix
+              </label>
               <input
                 type="number"
                 name="prix"
@@ -1493,32 +1214,16 @@ const Maps = () => {
                   borderRadius: "0.75rem",
                   border: "2px solid #e5e7eb",
                   fontSize: "0.875rem",
-                  transition: "all 0.3s ease",
                   background: "linear-gradient(145deg, #ffffff, #f8fafc)",
                   boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.06)",
-                  outline: "none"
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#003061";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(0, 48, 97, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(-1px)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#e5e7eb";
-                  e.target.style.boxShadow = "inset 0 2px 4px rgba(0, 0, 0, 0.06)";
-                  e.target.style.transform = "translateY(0)";
+                  outline: "none",
                 }}
               />
             </div>
           </div>
 
-          {/* Bouton Enregistrer avec design moderne */}
-          <div style={{
-            gridColumn: "1 / -1",
-            textAlign: "center",
-            marginTop: "1rem",
-            position: "relative"
-          }}>
+          {/* Bouton Enregistrer */}
+          <div style={{ gridColumn: "1 / -1", textAlign: "center", marginTop: "1rem", position: "relative" }}>
             <button
               type="submit"
               style={{
@@ -1529,37 +1234,15 @@ const Maps = () => {
                 padding: "0.875rem 2.5rem",
                 cursor: "pointer",
                 fontSize: "1rem",
-                fontWeight: "600",
+                fontWeight: 600,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
-                transition: "all 0.3s ease",
                 boxShadow: "0 4px 15px rgba(0, 48, 97, 0.3)",
                 position: "relative",
                 overflow: "hidden",
-                animation: "pulse 2s infinite"
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = "translateY(-2px) scale(1.05)";
-                e.target.style.boxShadow = "0 8px 25px rgba(0, 48, 97, 0.4)";
-                e.target.style.background = "linear-gradient(135deg, #002244, #0055aa)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = "translateY(0) scale(1)";
-                e.target.style.boxShadow = "0 4px 15px rgba(0, 48, 97, 0.3)";
-                e.target.style.background = "linear-gradient(135deg, #003061, #0066cc)";
-              }}
-              onMouseDown={(e) => {
-                e.target.style.transform = "translateY(0) scale(0.98)";
-              }}
-              onMouseUp={(e) => {
-                e.target.style.transform = "translateY(-2px) scale(1.05)";
               }}
             >
-              <span style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem"
-              }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
                 💾 Enregistrer
               </span>
             </button>
@@ -1585,7 +1268,7 @@ const Maps = () => {
               padding: "10px 20px",
               cursor: "pointer",
               fontSize: "16px",
-              fontWeight: "600",
+              fontWeight: 600,
             }}
           >
             Annuler
@@ -1600,7 +1283,7 @@ const Maps = () => {
               padding: "10px 20px",
               cursor: "pointer",
               fontSize: "16px",
-              fontWeight: "600",
+              fontWeight: 600,
             }}
           >
             Supprimer

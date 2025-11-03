@@ -1,59 +1,338 @@
+// src/views/admin/AddIntervention.js
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { useSecurity } from "../../contexts/SecurityContext";
+import api from "../../utils/api";
 
-function AddIntervention() {
+// ---- Design system (mêmes tokens que AssignIntervention) ----
+const THEME = {
+  radius: 16,
+  shadowSm: "0 6px 16px rgba(2, 6, 23, .06)",
+  shadowMd: "0 16px 36px rgba(2, 6, 23, .14)",
+  card: {
+    background: "rgba(255,255,255,0.94)",
+    backdrop: "saturate(140%) blur(10px)",
+    border: "1px solid rgba(226,232,240,.9)",
+  },
+  primary: ["#0078d4", "#003061"],
+  success: ["#10b981", "#059669"],
+  warning: ["#f59e0b", "#d97706"],
+  danger: ["#ef4444", "#dc2626"],
+};
+
+const pageStyles = {
+  container: {
+    position: "relative",
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%)",
+    padding: 24,
+    overflow: "hidden",
+  },
+  hero: {
+    background: "linear-gradient(135deg, #003061, #0078d4)",
+    borderRadius: 24,
+    padding: 32,
+    color: "white",
+    textAlign: "center",
+    boxShadow: THEME.shadowMd,
+    margin: "0 auto 24px",
+    maxWidth: 1000,
+    position: "relative",
+    overflow: "hidden",
+  },
+  heroShimmer: {
+    position: "absolute",
+    inset: 0,
+    background:
+      "linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent)",
+    backgroundSize: "200% 100%",
+    animation: "shimmer 3s ease-in-out infinite",
+  },
+  card: {
+    background: THEME.card.background,
+    backdropFilter: THEME.card.backdrop,
+    border: THEME.card.border,
+    borderRadius: 32,
+    boxShadow: THEME.shadowMd,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  section: { padding: "2.5rem 2rem" },
+  h3: {
+    fontSize: 24,
+    fontWeight: 700,
+    color: "#003061",
+    marginBottom: 24,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  label: {
+    display: "block",
+    fontSize: 16,
+    fontWeight: 700,
+    color: "#374151",
+    marginBottom: 10,
+  },
+  input: {
+    width: "100%",
+    padding: 14,
+    border: "2px solid #e5e7eb",
+    borderRadius: 12,
+    fontSize: 15,
+    background: "white",
+    outline: "none",
+    transition: "all .2s ease",
+    boxShadow: THEME.shadowSm,
+  },
+  textarea: {
+    width: "100%",
+    padding: 14,
+    border: "2px solid #e5e7eb",
+    borderRadius: 12,
+    fontSize: 15,
+    background: "white",
+    outline: "none",
+    transition: "all .2s ease",
+    resize: "vertical",
+    boxShadow: THEME.shadowSm,
+    fontFamily: "inherit",
+  },
+  select: {
+    width: "100%",
+    padding: 14,
+    border: "2px solid #e5e7eb",
+    borderRadius: 12,
+    fontSize: 15,
+    background: "white",
+    outline: "none",
+    transition: "all .2s ease",
+    boxShadow: THEME.shadowSm,
+  },
+  button: (disabled, tone = "blue") => {
+    const tones = {
+      blue: THEME.primary,
+      green: THEME.success,
+      gray: ["#e5e7eb", "#d1d5db"],
+      red: THEME.danger,
+    };
+    const t = tones[tone] || tones.blue;
+    return {
+      padding: "14px 28px",
+      background: disabled
+        ? "linear-gradient(135deg, #9ca3af, #6b7280)"
+        : `linear-gradient(135deg, ${t[0]}, ${t[1]})`,
+      color: tone === "gray" ? "#0f172a" : "#fff",
+      border: "none",
+      borderRadius: 16,
+      fontSize: 16,
+      fontWeight: 700,
+      cursor: disabled ? "not-allowed" : "pointer",
+      transition: "all .2s ease",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+      boxShadow: "0 8px 25px rgba(0, 48, 97, 0.25)",
+    };
+  },
+  pill: (active, colorOn = THEME.primary[0]) => ({
+    padding: "14px",
+    borderRadius: 16,
+    border: `2px solid ${active ? colorOn : "#e5e7eb"}`,
+    background: active ? "linear-gradient(135deg, #dbeafe, #bfdbfe)" : "#fff",
+    cursor: "pointer",
+    transition: "all .2s ease",
+    textAlign: "center",
+    boxShadow: active ? "0 8px 25px rgba(59, 130, 246, .15)" : THEME.shadowSm,
+  }),
+};
+
+// ---- Global animations (injected) ----
+const GlobalAnimations = () => (
+  <style>{`
+    @keyframes shimmer { 0%{background-position:-200px 0} 100%{background-position:calc(200px + 100%) 0} }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+    @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+    @keyframes bounceIn {
+      0%{opacity:0; transform:scale(.3)}
+      50%{opacity:1; transform:scale(1.05)}
+      70%{transform:scale(.95)}
+      100%{opacity:1; transform:scale(1)}
+    }
+  `}</style>
+);
+
+export default function AddIntervention() {
   const { t } = useLanguage();
+  const { user, hasPermission, PERMISSIONS } = useSecurity();
+
+  // Permissions
+  const canAccess = hasPermission(PERMISSIONS.CREATE_INTERVENTION);
+
+  // State
   const [type, setType] = useState("CURATIVE");
   const [description, setDescription] = useState("");
-  const [dateDemande] = useState(new Date().toISOString().split("T")[0]);
   const [statut, setStatut] = useState("EN_ATTENTE");
   const [priorite, setPriorite] = useState("MOYENNE");
-  const [demandeurId, setDemandeurId] = useState("");
-  const [demandeurs, setDemandeurs] = useState([]);
+
+  const [userDetails, setUserDetails] = useState(null);
+
+  // Testeurs
+  const [testeurs, setTesteurs] = useState([]);
+  const [testeurCodeGmao, setTesteurCodeGmao] = useState("");
+
+  // Curative
   const [panne, setPanne] = useState("");
   const [urgence, setUrgence] = useState(false);
+
+  // Préventive
   const [frequence, setFrequence] = useState("");
   const [prochainRDV, setProchainRDV] = useState("");
-  const [loading, setLoading] = useState(false);
+
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
-    fetch("http://localhost:8089/PI/user/all")
-      .then((response) => response.json())
-      .then((data) => {
-        setDemandeurs(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Erreur :", error);
-        setLoading(false);
-        setMessage("Erreur lors du chargement des utilisateurs.");
-      });
-  }, []);
+  // Fetch infos user (fallback + /user/all)
+  const fetchUserDetails = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const defaultFallbackData = {
+        firstName: user?.firstName || "Prénom",
+        lastName: user?.lastName || "Nom",
+        email: user?.email || "email@exemple.com",
+        role: user?.role || "UTILISATEUR",
+        phoneNumber: user?.phoneNumber || "+216 XX XXX XXX",
+        adress: user?.adress || "Adresse",
+      };
+      setUserDetails(defaultFallbackData);
 
+      const res = await fetch("http://localhost:8089/PI/user/all", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (res.ok) {
+        const users = await res.json();
+        const currentUser = users.find((u) => u.id === (user?.userId || user?.id));
+        if (currentUser) setUserDetails(currentUser);
+      }
+    } catch (e) {
+      // on garde le fallback
+      // console.error(e);
+    }
+  };
+  useEffect(() => {
+    fetchUserDetails();
+    fetchTesteurs();
+  }, [user]);
+
+  // Fetch testeurs (même approche qu'AssignIntervention)
+  const fetchTesteurs = async () => {
+    try {
+      console.log("🔍 Chargement des testeurs...");
+      
+      // Appel sans authentification (comme AssignIntervention)
+      const res = await fetch("http://localhost:8089/PI/PI/testeurs/all", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      console.log("📡 Réponse API testeurs - Status:", res.status);
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log("✅ Testeurs récupérés:", data);
+        console.log("📊 Nombre de testeurs:", data?.length || 0);
+        
+        if (Array.isArray(data)) {
+          setTesteurs(data);
+          console.log("✅ State testeurs mis à jour avec", data.length, "testeurs");
+        } else {
+          console.warn("⚠️ Format de réponse invalide:", data);
+          setTesteurs([]);
+        }
+      } else {
+        console.error("❌ Erreur API testeurs - Status:", res.status);
+        const errorText = await res.text();
+        console.error("Détails erreur:", errorText);
+      }
+    } catch (e) {
+      console.error("❌ Erreur lors du chargement des testeurs:", e);
+      console.error("Stack:", e.stack);
+    }
+  };
+
+  // Guard: not allowed
+  if (!canAccess) {
+    return (
+      <div style={pageStyles.container}>
+        <GlobalAnimations />
+        <div style={{ ...pageStyles.card, maxWidth: 560, margin: "60px auto", padding: 28 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🚫</div>
+          <h3 style={{ fontSize: 22, fontWeight: 800, color: "#111827", marginBottom: 8 }}>
+            Accès non autorisé
+          </h3>
+          <p style={{ color: "#6b7280" }}>
+            Vous n'avez pas les autorisations nécessaires pour accéder à cette page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Guard: not logged
+  if (!user) {
+    return (
+      <div style={pageStyles.container}>
+        <GlobalAnimations />
+        <div style={{ ...pageStyles.card, maxWidth: 560, margin: "60px auto", padding: 28, textAlign: "center" }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
+          <h3 style={{ fontSize: 22, fontWeight: 800, color: "#111827", marginBottom: 8 }}>
+            Connexion requise
+          </h3>
+          <p style={{ color: "#6b7280" }}>
+            Vous devez être connecté pour créer une intervention.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Validation
   const validateForm = () => {
-    if (!demandeurId) {
-      setMessage(t('intervention.error.select_requester', "⚠️ Veuillez sélectionner un demandeur."));
+    if (!description) {
+      setMessage(t("intervention.error.enter_description", "⚠️ Veuillez entrer une description."));
       return false;
     }
-    if (!description) {
-      setMessage(t('intervention.error.enter_description', "⚠️ Veuillez entrer une description."));
+    if (!testeurCodeGmao) {
+      setMessage(t("intervention.error.select_testeur", "⚠️ Veuillez sélectionner un testeur (Code GMAO)."));
       return false;
     }
     if (type === "CURATIVE" && !panne) {
-      setMessage(t('intervention.error.enter_failure', "⚠️ Veuillez entrer une panne pour l'intervention curative."));
+      setMessage(
+        t(
+          "intervention.error.enter_failure",
+          "⚠️ Veuillez entrer une panne pour l'intervention curative."
+        )
+      );
       return false;
     }
     if (type === "PREVENTIVE" && (!frequence || !prochainRDV)) {
-      setMessage("⚠️ Veuillez entrer la fréquence et le prochain RDV pour l'intervention préventive.");
+      setMessage(
+        t(
+          "intervention.error.missing_preventive",
+          "⚠️ Veuillez entrer la fréquence et le prochain RDV pour l'intervention préventive."
+        )
+      );
       return false;
     }
     return true;
   };
 
+  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -61,41 +340,57 @@ function AddIntervention() {
     setIsSubmitting(true);
     setMessage("");
 
-    const baseData = {
+    const demandeurId = user?.userId || user?.id;
+
+    // ⚠️ On garde la structure que tu utilises déjà (type_demande)
+    const interventionData = {
+      type_demande: type,
+      demandeurId,
       description,
-      dateDemande,
-      statut,
       priorite,
-      demandeurId: Number(demandeurId),
+      statut,
+      testeurCodeGmao: testeurCodeGmao || null,
+      ...(type === "CURATIVE"
+        ? { panne, urgence }
+        : { frequence, prochainRDV }),
     };
 
-    const intervention =
-      type === "CURATIVE"
-        ? { ...baseData, panne, urgence, type_demande: "CURATIVE" }
-        : { ...baseData, frequence, prochainRDV, type_demande: "PREVENTIVE" };
-
     try {
-      const response = await fetch(`http://localhost:8089/PI/PI/demandes/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(intervention),
-      });
-
-      if (!response.ok) throw new Error("Erreur serveur");
-
-      setShowSuccess(true);
-      setMessage("✅ Intervention créée avec succès !");
-      resetForm();
-      
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
-
-    } catch (err) {
-      console.error("Erreur lors de la création de l'intervention :", err);
-      setMessage("❌ Une erreur s'est produite lors de la création.");
+      const response = await api.post("/demandes/create", interventionData);
+      if (response?.data) {
+        setShowSuccess(true);
+        setMessage("✅ Intervention créée avec succès !");
+        
+        // Envoyer notification au chef de secteur
+        try {
+          const interventionDesc = description || panne || "Nouvelle intervention";
+          await fetch(`http://localhost:8089/PI/PI/notifications/nouvelle-intervention?interventionId=${response.data.id}&interventionDescription=${encodeURIComponent(interventionDesc)}`, {
+            method: "POST",
+          });
+          console.log("✅ Notification envoyée au chef de secteur");
+        } catch (notifError) {
+          console.warn("⚠️ Erreur notification chef secteur (non bloquant):", notifError);
+        }
+        
+        resetForm();
+        setTimeout(() => setShowSuccess(false), 2500);
+      }
+    } catch (error) {
+      let errorMessage = "Une erreur est survenue lors de la création de l'intervention";
+      if (error.response) {
+        const { status, data } = error.response;
+        if (status === 403) errorMessage = "Accès refusé. Vous n'avez pas les permissions nécessaires.";
+        else if (status === 401) {
+          errorMessage = "Session expirée. Veuillez vous reconnecter.";
+          window.location.href = "/auth/login";
+          return;
+        } else if (data && data.message) {
+          errorMessage = data.message;
+        }
+      } else if (error.request) {
+        errorMessage = "Pas de réponse du serveur. Vérifiez votre connexion internet.";
+      }
+      setMessage(`❌ ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -108,667 +403,404 @@ function AddIntervention() {
     setUrgence(false);
     setFrequence("");
     setProchainRDV("");
-    setDemandeurId("");
     setPriorite("MOYENNE");
+    setType("CURATIVE");
+    setTesteurCodeGmao("");
   };
 
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem'
-      }}>
-        <div style={{
-          textAlign: 'center',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '24px',
-          padding: '3rem',
-          boxShadow: '0 32px 64px rgba(0, 0, 0, 0.12)'
-        }}>
-          <div style={{
-            width: '80px',
-            height: '80px',
-            border: '4px solid #f3f4f6',
-            borderTop: '4px solid #3b82f6',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 1rem'
-          }} />
-          <h2 style={{
-            fontSize: '1.5rem',
-            color: '#1f2937',
-            margin: 0
-          }}>Chargement des données...</h2>
+  // ---- UI ----
+  return (
+    <div style={pageStyles.container}>
+      <GlobalAnimations />
+
+      {/* HERO */}
+      <div style={pageStyles.hero}>
+        <div style={pageStyles.heroShimmer} />
+        <div style={{ position: "relative", zIndex: 2 }}>
+          <div style={{ fontSize: 48, marginBottom: 10, animation: "pulse 2s ease-in-out infinite" }}>
+            📋
+          </div>
+          <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>
+            {t("intervention.add_title", "Nouvelle Intervention")}
+          </h1>
+          <p style={{ marginTop: 8, opacity: 0.9 }}>
+            {t("intervention.add_subtitle", "Créez une nouvelle demande d'intervention Sagemcom")}
+          </p>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <>
-      <style jsx global>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideInLeft {
-          from { opacity: 0; transform: translateX(-30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        @keyframes shimmer {
-          0% { background-position: -200px 0; }
-          100% { background-position: calc(200px + 100%) 0; }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          33% { transform: translateY(-10px) rotate(2deg); }
-          66% { transform: translateY(5px) rotate(-2deg); }
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes bounceIn {
-          0% { opacity: 0; transform: scale(0.3); }
-          50% { opacity: 1; transform: scale(1.05); }
-          70% { transform: scale(0.9); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-
-      <div style={{
-        position: 'relative',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-        padding: '2rem',
-        overflow: 'hidden'
-      }}>
-        {/* Éléments décoratifs flottants */}
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              width: `${60 + Math.random() * 80}px`,
-              height: `${60 + Math.random() * 80}px`,
-              background: `linear-gradient(45deg, rgba(255,255,255,${0.05 + Math.random() * 0.1}), rgba(255,255,255,${0.08 + Math.random() * 0.1}))`,
-              borderRadius: '50%',
-              animation: `float ${6 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 3}s`,
-              filter: 'blur(1px)',
-              border: '1px solid rgba(255,255,255,0.1)'
-            }}
-          />
-        ))}
-
-        {/* Container principal */}
-        <div style={{
-          position: 'relative',
-          maxWidth: '1000px',
-          margin: '0 auto',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '32px',
-          boxShadow: '0 32px 64px rgba(0, 0, 0, 0.12), 0 16px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          overflow: 'hidden',
-          animation: 'fadeInUp 0.8s ease-out',
-          zIndex: 1
-        }}>
-          {/* Header avec gradient animé */}
-          <div style={{
-            background: 'linear-gradient(135deg, #003061 0%, #0078d4 50%, #00a2ff 100%)',
-            padding: '3rem 2rem',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
-              backgroundSize: '200% 100%',
-              animation: 'shimmer 3s ease-in-out infinite'
-            }} />
-            
-            <div style={{
-              textAlign: 'center',
-              position: 'relative',
-              zIndex: 2
-            }}>
-              <div style={{
-                fontSize: '4rem',
-                marginBottom: '1rem',
-                animation: 'pulse 2s ease-in-out infinite',
-                filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))'
-              }}>📋</div>
-              
-              <h1 style={{
-                fontSize: '2.5rem',
-                fontWeight: '700',
-                color: 'white',
-                marginBottom: '0.5rem',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
-                animation: 'slideInLeft 0.8s ease-out 0.2s both'
-              }}>{t('intervention.add_title', 'Nouvelle Intervention')}</h1>
-              
-              <p style={{
-                fontSize: '1.1rem',
-                color: 'rgba(255, 255, 255, 0.9)',
-                fontWeight: '300',
-                animation: 'slideInLeft 0.8s ease-out 0.4s both'
-              }}>✨ {t('intervention.add_subtitle', 'Créez une nouvelle demande d\'intervention Sagemcom')}</p>
+      {/* CARD */}
+      <div style={{ ...pageStyles.card, maxWidth: 1000, margin: "0 auto" }}>
+        {/* Notifications */}
+        <div style={pageStyles.section}>
+          {message && (
+            <div
+              style={{
+                marginBottom: 24,
+                padding: "12px 16px",
+                borderRadius: 16,
+                background: message.includes("✅")
+                  ? "linear-gradient(135deg, #d1fae5, #a7f3d0)"
+                  : "linear-gradient(135deg, #fee2e2, #fecaca)",
+                border: `1px solid ${message.includes("✅") ? "#10b981" : "#ef4444"}`,
+                color: message.includes("✅") ? "#065f46" : "#dc2626",
+                fontSize: 14,
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 18 }}>{message.includes("✅") ? "✅" : "⚠️"}</span>
+              {message}
             </div>
-          </div>
+          )}
 
-          {/* Contenu du formulaire */}
-          <div style={{ padding: '3rem 2rem' }}>
-            {/* Messages de notification */}
-            {message && (
-              <div style={{
-                marginBottom: '2rem',
-                padding: '1rem 1.5rem',
-                borderRadius: '16px',
-                background: message.includes('✅') 
-                  ? 'linear-gradient(135deg, #d1fae5, #a7f3d0)'
-                  : 'linear-gradient(135deg, #fee2e2, #fecaca)',
-                border: `1px solid ${message.includes('✅') ? '#10b981' : '#ef4444'}`,
-                color: message.includes('✅') ? '#065f46' : '#dc2626',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                animation: 'slideDown 0.3s ease-out',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                <span style={{ fontSize: '1.2rem' }}>
-                  {message.includes('✅') ? '✅' : '⚠️'}
-                </span>
-                {message}
-              </div>
-            )}
-
-            {/* Animation de succès */}
-            {showSuccess && (
-              <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0, 0, 0, 0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+          {/* Modal succès */}
+          {showSuccess && (
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,.5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 zIndex: 1000,
-                animation: 'fadeInUp 0.3s ease-out'
-              }}>
-                <div style={{
-                  background: 'white',
-                  borderRadius: '24px',
-                  padding: '3rem',
-                  textAlign: 'center',
-                  animation: 'bounceIn 0.6s ease-out',
-                  boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)'
-                }}>
-                  <div style={{
-                    fontSize: '4rem',
-                    marginBottom: '1rem',
-                    animation: 'pulse 1s ease-in-out infinite'
-                  }}>🎉</div>
-                  <h2 style={{
-                    fontSize: '1.5rem',
-                    fontWeight: '700',
-                    color: '#10b981',
-                    marginBottom: '0.5rem'
-                  }}>Intervention Créée !</h2>
-                  <p style={{
-                    color: '#6b7280',
-                    fontSize: '1rem'
-                  }}>Votre demande a été enregistrée avec succès</p>
+              }}
+            >
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: 24,
+                  padding: 32,
+                  textAlign: "center",
+                  animation: "bounceIn .6s ease-out",
+                  boxShadow: "0 25px 50px rgba(0,0,0,.25)",
+                }}
+              >
+                <div style={{ fontSize: 48, marginBottom: 10, animation: "pulse 1s ease-in-out infinite" }}>
+                  🎉
                 </div>
+                <h2 style={{ fontSize: 22, fontWeight: 800, color: THEME.success[1], marginBottom: 6 }}>
+                  Intervention Créée !
+                </h2>
+                <p style={{ color: "#6b7280" }}>Votre demande a été enregistrée avec succès</p>
               </div>
-            )}
+            </div>
+          )}
 
-            <form onSubmit={handleSubmit}>
-              {/* Section Type d'Intervention */}
-              <div style={{ marginBottom: '3rem' }}>
-                <h3 style={{
-                  fontSize: '1.5rem',
-                  fontWeight: '600',
-                  color: '#003061',
-                  marginBottom: '2rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  🔧 {t('intervention.type_title', 'Type d\'Intervention')}
-                </h3>
-
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '1.5rem',
-                  marginBottom: '2rem'
-                }}>
-                  {['CURATIVE', 'PREVENTIVE'].map((typeOption) => (
-                    <div
-                      key={typeOption}
-                      onClick={() => setType(typeOption)}
-                      style={{
-                        padding: '2rem',
-                        borderRadius: '16px',
-                        border: `2px solid ${type === typeOption ? '#3b82f6' : '#e5e7eb'}`,
-                        background: type === typeOption 
-                          ? 'linear-gradient(135deg, #dbeafe, #bfdbfe)' 
-                          : 'white',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        textAlign: 'center',
-                        transform: type === typeOption ? 'translateY(-2px)' : 'translateY(0)',
-                        boxShadow: type === typeOption ? '0 8px 25px rgba(59, 130, 246, 0.15)' : '0 2px 10px rgba(0, 0, 0, 0.1)'
-                      }}
-                    >
-                      <div style={{
-                        fontSize: '2.5rem',
-                        marginBottom: '1rem'
-                      }}>
-                        {typeOption === 'CURATIVE' ? '🔧' : '⚙️'}
-                      </div>
-                      <h4 style={{
-                        fontSize: '1.1rem',
-                        fontWeight: '600',
-                        color: type === typeOption ? '#1e40af' : '#374151',
-                        marginBottom: '0.5rem'
-                      }}>
-                        {typeOption === 'CURATIVE' ? t('intervention.type_curative', 'Curative') : t('intervention.type_preventive', 'Préventive')}
-                      </h4>
-                      <p style={{
-                        fontSize: '0.875rem',
-                        color: '#6b7280',
-                        margin: 0
-                      }}>
-                        {typeOption === 'CURATIVE' 
-                          ? t('intervention.type_curative_desc', 'Réparation suite à une panne') 
-                          : t('intervention.type_preventive_desc', 'Maintenance programmée')}
-                      </p>
+          {/* FORM */}
+          <form onSubmit={handleSubmit}>
+            {/* Type d’intervention */}
+            <div style={{ marginBottom: 32 }}>
+              <h3 style={pageStyles.h3}>🔧 {t("intervention.type_title", "Type d'Intervention")}</h3>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 16,
+                }}
+              >
+                {["CURATIVE", "PREVENTIVE"].map((opt) => (
+                  <div
+                    key={opt}
+                    role="button"
+                    onClick={() => setType(opt)}
+                    style={{
+                      ...pageStyles.pill(type === opt, THEME.primary[0]),
+                      padding: 24,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = "none")}
+                  >
+                    <div style={{ fontSize: 36, marginBottom: 10 }}>{opt === "CURATIVE" ? "🔧" : "⚙️"}</div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: type === opt ? "#1e40af" : "#374151" }}>
+                      {opt === "CURATIVE"
+                        ? t("intervention.type_curative", "Curative")
+                        : t("intervention.type_preventive", "Préventive")}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Section Informations Générales */}
-              <div style={{ marginBottom: '3rem' }}>
-                <h3 style={{
-                  fontSize: '1.5rem',
-                  fontWeight: '600',
-                  color: '#003061',
-                  marginBottom: '2rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  📋 {t('intervention.general_info', 'Informations Générales')}
-                </h3>
-
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '2rem',
-                  marginBottom: '2rem'
-                }}>
-                  {/* Demandeur */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      marginBottom: '0.75rem'
-                    }}>
-                      👤 {t('intervention.requester', 'Demandeur')} *
-                    </label>
-                    <select
-                      value={demandeurId}
-                      onChange={(e) => setDemandeurId(e.target.value)}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '1rem',
-                        border: '2px solid #e5e7eb',
-                        borderRadius: '12px',
-                        fontSize: '1rem',
-                        background: 'white',
-                        outline: 'none',
-                        transition: 'all 0.3s ease'
-                      }}
-                    >
-                      <option value="">{t('intervention.select_requester', 'Sélectionner un demandeur')}</option>
-                      {demandeurs.map((demandeur) => (
-                        <option key={demandeur.id} value={demandeur.id}>
-                          {demandeur.firstName} {demandeur.lastName} - {demandeur.role}
-                        </option>
-                      ))}
-                    </select>
+                    <div style={{ fontSize: 13, color: "#6b7280", marginTop: 6 }}>
+                      {opt === "CURATIVE"
+                        ? t("intervention.type_curative_desc", "Réparation suite à une panne")
+                        : t("intervention.type_preventive_desc", "Maintenance programmée")}
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
 
-                  {/* Priorité */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      marginBottom: '0.75rem'
-                    }}>
-                      🚨 {t('interventions.priority_field', 'Priorité')}
-                    </label>
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, 1fr)',
-                      gap: '0.5rem'
-                    }}>
-                      {[
-                        { value: 'BASSE', label: t('interventions.priority_low', 'Basse'), color: '#10b981', emoji: '🟢' },
-                        { value: 'MOYENNE', label: t('interventions.priority_normal', 'Moyenne'), color: '#f59e0b', emoji: '🟡' },
-                        { value: 'HAUTE', label: t('interventions.priority_high', 'Haute'), color: '#ef4444', emoji: '🔴' }
-                      ].map((priorityOption) => (
-                        <div
-                          key={priorityOption.value}
-                          onClick={() => setPriorite(priorityOption.value)}
+            {/* Informations générales */}
+            <div style={{ marginBottom: 32 }}>
+              <h3 style={pageStyles.h3}>📋 {t("intervention.general_info", "Informations Générales")}</h3>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 24,
+                  marginBottom: 24,
+                }}
+              >
+                {/* Demandeur */}
+                <div>
+                  <label style={pageStyles.label}>👤 {t("intervention.requester", "Demandeur")}</label>
+                  <div
+                    style={{
+                      padding: 16,
+                      border: "2px solid rgba(0,48,97,.2)",
+                      borderRadius: 12,
+                      background: "rgba(248,250,252,.9)",
+                      color: "#374151",
+                      boxShadow: THEME.shadowSm,
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <span style={{ fontSize: 20 }}>🏢</span>
+                    <div>
+                      <div style={{ fontWeight: 800 }}>
+                        {userDetails
+                          ? `${userDetails.firstName || userDetails.firstname || ""} ${
+                              userDetails.lastName || userDetails.lastname || ""
+                            }`.trim() || "Nom complet indisponible"
+                          : "Chargement..."}
+                      </div>
+                      <div style={{ fontSize: 13, color: "#6b7280" }}>
+                        {userDetails?.email || "Email indisponible"} — {userDetails?.role || "Rôle indisponible"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Priorité */}
+                <div>
+                  <label style={pageStyles.label}>🚨 {t("interventions.priority_field", "Priorité")}</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+                    {[
+                      { value: "BASSE", label: t("interventions.priority_low", "Basse"), color: "#10b981", emoji: "🟢" },
+                      { value: "MOYENNE", label: t("interventions.priority_normal", "Moyenne"), color: "#f59e0b", emoji: "🟡" },
+                      { value: "HAUTE", label: t("interventions.priority_high", "Haute"), color: "#ef4444", emoji: "🔴" },
+                    ].map((p) => (
+                      <div
+                        key={p.value}
+                        onClick={() => setPriorite(p.value)}
+                        role="button"
+                        style={{
+                          padding: 12,
+                          borderRadius: 12,
+                          border: `2px solid ${priorite === p.value ? p.color : "#e5e7eb"}`,
+                          background: priorite === p.value ? `${p.color}20` : "#fff",
+                          textAlign: "center",
+                          cursor: "pointer",
+                          transition: "all .2s ease",
+                          boxShadow: THEME.shadowSm,
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.transform = "none")}
+                      >
+                        <div style={{ fontSize: 18, marginBottom: 4 }}>{p.emoji}</div>
+                        <span
                           style={{
-                            padding: '0.75rem',
-                            borderRadius: '8px',
-                            border: `2px solid ${priorite === priorityOption.value ? priorityOption.color : '#e5e7eb'}`,
-                            background: priorite === priorityOption.value 
-                              ? `${priorityOption.color}20` 
-                              : 'white',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s ease',
-                            textAlign: 'center'
+                            fontSize: 12,
+                            fontWeight: 800,
+                            color: priorite === p.value ? p.color : "#374151",
                           }}
                         >
-                          <div style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>
-                            {priorityOption.emoji}
-                          </div>
-                          <span style={{
-                            fontSize: '0.75rem',
-                            fontWeight: '600',
-                            color: priorite === priorityOption.value ? priorityOption.color : '#374151'
-                          }}>
-                            {priorityOption.label}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                          {p.label}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                </div>
-
-                {/* Description */}
-                <div style={{ marginBottom: '2rem' }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '0.75rem'
-                  }}>
-                    📄 {t('interventions.description_field', 'Description')} *
-                  </label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder={t('interventions.description_placeholder', "Décrivez en détail l'intervention nécessaire...")}
-                    required
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '1rem',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '12px',
-                      fontSize: '1rem',
-                      background: 'white',
-                      outline: 'none',
-                      transition: 'all 0.3s ease',
-                      resize: 'vertical',
-                      fontFamily: 'inherit'
-                    }}
-                  />
                 </div>
               </div>
 
-              {/* Section Détails Spécifiques */}
-              <div style={{ marginBottom: '3rem' }}>
-                <h3 style={{
-                  fontSize: '1.5rem',
-                  fontWeight: '600',
-                  color: '#003061',
-                  marginBottom: '2rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}>
-                  {type === 'CURATIVE' ? `⚠️ ${t('intervention.failure_details', 'Détails de la Panne')}` : `🔄 ${t('intervention.maintenance_details', 'Détails de la Maintenance')}`}
-                </h3>
-
-                {type === "CURATIVE" ? (
-                  <>
-                    <div style={{ marginBottom: '2rem' }}>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                        color: '#374151',
-                        marginBottom: '0.75rem'
-                      }}>
-                        ⚠️ {t('intervention.failure', 'Description de la Panne')} *
-                      </label>
-                      <textarea
-                        value={panne}
-                        onChange={(e) => setPanne(e.target.value)}
-                        placeholder={t('intervention.failure.placeholder', 'Décrivez la panne observée...')}
-                        required
-                        rows={3}
-                        style={{
-                          width: '100%',
-                          padding: '1rem',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '12px',
-                          fontSize: '1rem',
-                          background: 'white',
-                          outline: 'none',
-                          transition: 'all 0.3s ease',
-                          resize: 'vertical',
-                          fontFamily: 'inherit'
-                        }}
-                      />
-                    </div>
-
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '1rem',
-                      background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
-                      borderRadius: '12px',
-                      border: '1px solid #f59e0b'
-                    }}>
-                      <input
-                        type="checkbox"
-                        id="urgence"
-                        checked={urgence}
-                        onChange={(e) => setUrgence(e.target.checked)}
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          accentColor: '#f59e0b'
-                        }}
-                      />
-                      <label htmlFor="urgence" style={{
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                        color: '#92400e',
-                        cursor: 'pointer'
-                      }}>
-                        🚨 {t('intervention.urgent', 'Intervention urgente')}
-                      </label>
-                    </div>
-                  </>
-                ) : (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '1.5rem'
-                  }}>
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                        color: '#374151',
-                        marginBottom: '0.75rem'
-                      }}>
-                        🔄 {t('intervention.frequency', 'Fréquence')} *
-                      </label>
-                      <select
-                        value={frequence}
-                        onChange={(e) => setFrequence(e.target.value)}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '1rem',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '12px',
-                          fontSize: '1rem',
-                          background: 'white',
-                          outline: 'none',
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        <option value="">{t('intervention.frequency.select', 'Sélectionner')}</option>
-                        <option value="Hebdomadaire">{t('intervention.frequency.weekly', 'Hebdomadaire')}</option>
-                        <option value="Mensuelle">{t('intervention.frequency.monthly', 'Mensuelle')}</option>
-                        <option value="Trimestrielle">{t('intervention.frequency.quarterly', 'Trimestrielle')}</option>
-                        <option value="Semestrielle">{t('intervention.frequency.biannual', 'Semestrielle')}</option>
-                        <option value="Annuelle">{t('intervention.frequency.annual', 'Annuelle')}</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        fontSize: '1rem',
-                        fontWeight: '600',
-                        color: '#374151',
-                        marginBottom: '0.75rem'
-                      }}>
-                        📅 {t('intervention.next_appointment', 'Prochain RDV')} *
-                      </label>
-                      <input
-                        type="date"
-                        value={prochainRDV}
-                        onChange={(e) => setProchainRDV(e.target.value)}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '1rem',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '12px',
-                          fontSize: '1rem',
-                          background: 'white',
-                          outline: 'none',
-                          transition: 'all 0.3s ease'
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
+              {/* Description */}
+              <div style={{ marginBottom: 24 }}>
+                <label style={pageStyles.label}>
+                  📄 {t("interventions.description_field", "Description")} *
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder={t(
+                    "interventions.description_placeholder",
+                    "Décrivez en détail l'intervention nécessaire..."
+                  )}
+                  rows={4}
+                  style={pageStyles.textarea}
+                  required
+                />
               </div>
 
-              {/* Bouton de soumission */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                paddingTop: '2rem',
-                borderTop: '1px solid #e5e7eb'
-              }}>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
+              {/* Testeur (Code GMAO) */}
+              <div style={{ marginBottom: 24 }}>
+                <label style={pageStyles.label}>
+                  🔬 {t("intervention.testeur", "Testeur (Code GMAO)")} *
+                  <span style={{ fontSize: 12, color: "#6b7280", marginLeft: 8 }}>
+                    ({testeurs.length} testeur{testeurs.length > 1 ? 's' : ''} disponible{testeurs.length > 1 ? 's' : ''})
+                  </span>
+                </label>
+                <select
+                  value={testeurCodeGmao}
+                  onChange={(e) => {
+                    console.log("🔬 Testeur sélectionné:", e.target.value);
+                    setTesteurCodeGmao(e.target.value);
+                  }}
+                  style={pageStyles.select}
+                  required
+                >
+                  <option value="">
+                    {t("intervention.testeur.select", "-- Sélectionner un testeur --")}
+                  </option>
+                  {testeurs.map((testeur) => {
+                    console.log("📋 Rendering testeur:", testeur);
+                    return (
+                      <option key={testeur.codeGMAO} value={testeur.codeGMAO}>
+                        {testeur.codeGMAO} - {testeur.atelier} / {testeur.ligne} / {testeur.bancTest}
+                      </option>
+                    );
+                  })}
+                </select>
+                <div
                   style={{
-                    padding: '1rem 3rem',
-                    background: isSubmitting 
-                      ? 'linear-gradient(135deg, #9ca3af, #6b7280)' 
-                      : 'linear-gradient(135deg, #003061, #0078d4)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '16px',
-                    fontSize: '1.1rem',
-                    fontWeight: '600',
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.3s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    boxShadow: '0 8px 25px rgba(0, 48, 97, 0.25)',
-                    transform: isSubmitting ? 'none' : 'translateY(0)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isSubmitting) {
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 12px 35px rgba(0, 48, 97, 0.35)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSubmitting) {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 8px 25px rgba(0, 48, 97, 0.25)';
-                    }
+                    fontSize: 13,
+                    color: "#6b7280",
+                    marginTop: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                   }}
                 >
-                  {isSubmitting ? (
-                    <>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        border: '2px solid rgba(255, 255, 255, 0.3)',
-                        borderTop: '2px solid white',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }} />
-                      {t('intervention.creating', 'Création en cours...')}
-                    </>
-                  ) : (
-                    <>
-                      <span style={{ fontSize: '1.2rem' }}>📋</span>
-                      {t('intervention.create_button', 'Créer l\'Intervention')}
-                    </>
-                  )}
-                </button>
+                  <span>💡</span>
+                  <span>
+                    {t(
+                      "intervention.testeur.hint",
+                      "Sélectionnez l'équipement/testeur concerné par cette intervention (obligatoire)"
+                    )}
+                  </span>
+                </div>
               </div>
-            </form>
-          </div>
+            </div>
+
+            {/* Détails spécifiques */}
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={pageStyles.h3}>
+                {type === "CURATIVE"
+                  ? `⚠️ ${t("intervention.failure_details", "Détails de la Panne")}`
+                  : `🔄 ${t("intervention.maintenance_details", "Détails de la Maintenance")}`}
+              </h3>
+
+              {type === "CURATIVE" ? (
+                <>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={pageStyles.label}>
+                      ⚠️ {t("intervention.failure", "Description de la Panne")} *
+                    </label>
+                    <textarea
+                      value={panne}
+                      onChange={(e) => setPanne(e.target.value)}
+                      placeholder={t("intervention.failure.placeholder", "Décrivez la panne observée...")}
+                      rows={3}
+                      style={pageStyles.textarea}
+                      required
+                    />
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: 12,
+                      background: "linear-gradient(135deg, #fef3c7, #fde68a)",
+                      borderRadius: 12,
+                      border: "1px solid #f59e0b",
+                      boxShadow: THEME.shadowSm,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      id="urgence"
+                      checked={urgence}
+                      onChange={(e) => setUrgence(e.target.checked)}
+                      style={{ width: 20, height: 20, accentColor: "#f59e0b" }}
+                    />
+                    <label htmlFor="urgence" style={{ fontSize: 16, fontWeight: 700, color: "#92400e", cursor: "pointer" }}>
+                      🚨 {t("intervention.urgent", "Intervention urgente")}
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div>
+                    <label style={pageStyles.label}>🔄 {t("intervention.frequency", "Fréquence")} *</label>
+                    <select
+                      value={frequence}
+                      onChange={(e) => setFrequence(e.target.value)}
+                      style={pageStyles.select}
+                      required
+                    >
+                      <option value="">{t("intervention.frequency.select", "Sélectionner")}</option>
+                      <option value="Hebdomadaire">{t("intervention.frequency.weekly", "Hebdomadaire")}</option>
+                      <option value="Mensuelle">{t("intervention.frequency.monthly", "Mensuelle")}</option>
+                      <option value="Trimestrielle">{t("intervention.frequency.quarterly", "Trimestrielle")}</option>
+                      <option value="Semestrielle">{t("intervention.frequency.biannual", "Semestrielle")}</option>
+                      <option value="Annuelle">{t("intervention.frequency.annual", "Annuelle")}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={pageStyles.label}>📅 {t("intervention.next_appointment", "Prochain RDV")} *</label>
+                    <input
+                      type="date"
+                      value={prochainRDV}
+                      onChange={(e) => setProchainRDV(e.target.value)}
+                      style={pageStyles.input}
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer submit */}
+            <div style={{ display: "flex", justifyContent: "center", paddingTop: 24, borderTop: "1px solid #e5e7eb" }}>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                style={pageStyles.button(isSubmitting, "blue")}
+                onMouseEnter={(e) => {
+                  if (!isSubmitting) e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSubmitting) e.currentTarget.style.transform = "none";
+                }}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div
+                      style={{
+                        width: 20,
+                        height: 20,
+                        border: "2px solid rgba(255,255,255,.35)",
+                        borderTop: "2px solid white",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                      }}
+                    />
+                    {t("intervention.creating", "Création en cours...")}
+                  </>
+                ) : (
+                  <>
+                    <span style={{ fontSize: 18 }}>📋</span>
+                    {t("intervention.create_button", "Créer l'Intervention")}
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-    </>
+    </div>
   );
 }
-
-export default AddIntervention;

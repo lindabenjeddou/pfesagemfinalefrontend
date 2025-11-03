@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { useSecurity } from "../../contexts/SecurityContext";
 
 // Énumération pour le statut du bon de travail
 const StatutBT = {
@@ -27,6 +28,7 @@ const StatusColors = {
 
 export default function Bont() {
   const { t } = useLanguage();
+  const { clearInvalidToken, isAuthenticated, user } = useSecurity();
   const [bonTravail, setBonTravail] = useState({
     id: "",
     description: "",
@@ -35,39 +37,134 @@ export default function Bont() {
     dateFin: "",
     statut: StatutBT.EN_ATTENTE,
     technicienId: "",
+    interventionId: "",
     composants: []
   });
 
   const [techniciens, setTechniciens] = useState([]);
+  const [interventions, setInterventions] = useState([]);
   const [composantsDisponibles, setComposantsDisponibles] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Fonction pour créer les headers avec JWT
+  const createAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    console.log("🔐 [bont.js] Token récupéré:", token ? `${token.substring(0, 30)}...` : "null");
+    console.log("🔐 [bont.js] Type du token:", typeof token);
+    console.log("🔐 [bont.js] Longueur du token:", token ? token.length : 0);
+    
+    if (token) {
+      const parts = token.split('.');
+      console.log("🔐 [bont.js] Parties du JWT:", parts.length);
+      if (parts.length !== 3) {
+        console.log("❌ [bont.js] Token malformé - devrait avoir 3 parties séparées par des points");
+      }
+    } else {
+      console.log("❌ [bont.js] Aucun token trouvé dans localStorage");
+      
+      // Vérifier tous les éléments du localStorage pour debug
+      console.log("🔍 [bont.js] Contenu complet du localStorage:");
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        console.log(`  - ${key}: ${value ? value.substring(0, 50) + '...' : 'null'}`);
+      }
+    }
+    
+    const isValidJWT = token && typeof token === 'string' && token.split('.').length === 3;
+    console.log("🔐 [bont.js] Token est valide:", isValidJWT);
+    
+    const headers = {
+      "Content-Type": "application/json"
+    };
+    
+    if (isValidJWT) {
+      headers["Authorization"] = `Bearer ${token}`;
+      console.log("✅ [bont.js] Header Authorization ajouté");
+    } else {
+      console.log("⚠️ [bont.js] Pas de header Authorization - token invalide ou manquant");
+    }
+    
+    return { headers, hasValidToken: isValidJWT };
+  };
+
   useEffect(() => {
+    // Nettoyer les tokens invalides
+    clearInvalidToken();
+    
+    const { headers } = createAuthHeaders();
+    
     // Charger les techniciens
-    fetch("http://localhost:8089/PI/user/all")
-      .then(response => response.json())
+    fetch("http://localhost:8089/PI/user/all", { headers })
+      .then(response => {
+        if (response.status === 401) {
+          setMessage("Session expirée. Veuillez vous reconnecter.");
+          return Promise.reject(new Error("Unauthorized"));
+        }
+        return response.json();
+      })
       .then(data => {
         const techniciensList = data.filter(user => 
           user.role === "TECHNICIEN_CURATIF" || user.role === "TECHNICIEN_PREVENTIF"
         );
         setTechniciens(techniciensList);
       })
-      .catch(error => console.error("Erreur lors du chargement des techniciens:", error));
+      .catch(error => {
+        console.error("Erreur lors du chargement des techniciens:", error);
+        if (error.message !== "Unauthorized") {
+          setMessage("Erreur lors du chargement des techniciens");
+        }
+      });
+
+    // Charger les interventions
+    fetch("http://localhost:8089/PI/pi/interventions", { headers })
+      .then(response => {
+        if (response.status === 401) {
+          setMessage("Session expirée. Veuillez vous reconnecter.");
+          return Promise.reject(new Error("Unauthorized"));
+        }
+        return response.json();
+      })
+      .then(raw => {
+        const list = Array.isArray(raw)
+          ? raw
+          : raw && Array.isArray(raw.content)
+          ? raw.content
+          : [];
+        setInterventions(list);
+      })
+      .catch(error => {
+        console.error("Erreur lors du chargement des interventions:", error);
+        if (error.message !== "Unauthorized") {
+          setMessage("Erreur lors du chargement des interventions");
+        }
+      });
 
     // Charger les composants
-    fetch("http://localhost:8089/PI/PI/component/all")
-      .then(response => response.json())
+    fetch("http://localhost:8089/PI/PI/component/all", { headers })
+      .then(response => {
+        if (response.status === 401) {
+          setMessage("Session expirée. Veuillez vous reconnecter.");
+          return Promise.reject(new Error("Unauthorized"));
+        }
+        return response.json();
+      })
       .then(data => {
         setComposantsDisponibles(data);
       })
-      .catch(error => console.error("Erreur lors du chargement des composants:", error));
-  }, []);
+      .catch(error => {
+        console.error("Erreur lors du chargement des composants:", error);
+        if (error.message !== "Unauthorized") {
+          setMessage("Erreur lors du chargement des composants");
+        }
+      });
+  }, [clearInvalidToken]);
 
   // Fonction pour générer un nouveau bon de travail
   const genererBT = async () => {
-    if (!bonTravail.description || !bonTravail.technicienId || bonTravail.composants.length === 0) {
-      setMessage(t('workorder.form.required', "Veuillez remplir tous les champs obligatoires"));
+    if (!bonTravail.description || !bonTravail.technicienId || !bonTravail.interventionId || bonTravail.composants.length === 0) {
+      setMessage(t('workorder.form.required', "Veuillez remplir tous les champs obligatoires (description, technicien, intervention, composants)"));
       return;
     }
 
@@ -75,27 +172,64 @@ export default function Bont() {
     setMessage("");
 
     try {
-      const response = await fetch("http://localhost:8089/PI/pi/bons", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          description: bonTravail.description,
-          dateCreation: bonTravail.dateCreation,
-          dateDebut: bonTravail.dateDebut,
-          dateFin: bonTravail.dateFin,
-          statut: bonTravail.statut,
-          technicien: parseInt(bonTravail.technicienId),
-          composants: bonTravail.composants
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la création du bon de travail");
+      // Nettoyer les tokens invalides
+      const tokenCleaned = clearInvalidToken();
+      if (tokenCleaned) {
+        setMessage("Token d'authentification invalide. Veuillez vous reconnecter.");
+        setLoading(false);
+        return;
       }
 
-      await response.json();
+      const { headers, hasValidToken } = createAuthHeaders();
+      
+      if (!hasValidToken) {
+        setMessage("Token d'authentification manquant. Veuillez vous reconnecter.");
+        setLoading(false);
+        return;
+      }
+
+      // Créer la structure de données comme dans CreateBonTravail.js
+      const requestWithIntervention = {
+        description: bonTravail.description,
+        dateCreation: bonTravail.dateCreation,
+        dateDebut: bonTravail.dateDebut,
+        dateFin: bonTravail.dateFin,
+        statut: bonTravail.statut,
+        technicien: parseInt(bonTravail.technicienId),
+        composants: bonTravail.composants,
+        // Ajouter les variants d'interventionId pour la réflection backend
+        interventionId: parseInt(bonTravail.interventionId),
+        idIntervention: parseInt(bonTravail.interventionId),
+        intervention_id: parseInt(bonTravail.interventionId),
+        id_intervention: parseInt(bonTravail.interventionId),
+        intervention: { id: parseInt(bonTravail.interventionId) },
+        demandeIntervention: { id: parseInt(bonTravail.interventionId) }
+      };
+
+      console.log("🚀 Création du bon de travail avec données:", requestWithIntervention);
+
+      const response = await fetch("http://localhost:8089/PI/pi/bons", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(requestWithIntervention)
+      });
+
+      console.log("📥 Réponse du serveur:", response.status, response.statusText);
+
+      if (response.status === 401) {
+        setMessage("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Erreur du serveur:", errorText);
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ Bon de travail créé:", result);
+      
       setMessage("Bon de travail créé avec succès!");
       setBonTravail({
         id: "",
@@ -105,11 +239,12 @@ export default function Bont() {
         dateFin: "",
         statut: StatutBT.EN_ATTENTE,
         technicienId: "",
+        interventionId: "",
         composants: []
       });
     } catch (error) {
-      console.error("Erreur:", error);
-      setMessage("Une erreur s'est produite lors de la création du bon de travail");
+      console.error("❌ Erreur lors de la création:", error);
+      setMessage(`Erreur lors de la création: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -178,6 +313,37 @@ export default function Bont() {
 
         {/* Contenu principal */}
         <div style={{ padding: '3rem 2rem' }}>
+          {/* Statut d'authentification */}
+          {!isAuthenticated && (
+            <div style={{
+              marginBottom: '2rem',
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+              border: '1px solid #f59e0b',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <span style={{ fontSize: '2rem' }}>🔐</span>
+              <div>
+                <div style={{
+                  color: '#92400e',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem'
+                }}>Authentification requise</div>
+                <div style={{
+                  color: '#92400e',
+                  fontSize: '0.9rem'
+                }}>
+                  Vous devez vous connecter pour créer des bons de travail. 
+                  <br />
+                  Allez à la page de connexion pour obtenir un token JWT valide.
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Message de statut */}
           {message && (
             <div style={{
@@ -325,6 +491,40 @@ export default function Bont() {
                 color: '#003061',
                 marginBottom: '1.5rem'
               }}>👨‍🔧 Assignation et Statut</h3>
+
+              {/* Intervention */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  color: '#003061',
+                  marginBottom: '0.5rem'
+                }}>🎯 {t('workorder.intervention', 'Intervention')}</label>
+                <select
+                  name="interventionId"
+                  value={bonTravail.interventionId}
+                  onChange={handleChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    border: '2px solid rgba(0, 48, 97, 0.2)',
+                    borderRadius: '12px',
+                    fontSize: '0.9rem',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="">Sélectionner une intervention</option>
+                  {interventions.map(intervention => (
+                    <option key={intervention.id} value={intervention.id}>
+                      {intervention.description || intervention.title || `Intervention ${intervention.id}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {/* Technicien */}
               <div style={{ marginBottom: '1.5rem' }}>

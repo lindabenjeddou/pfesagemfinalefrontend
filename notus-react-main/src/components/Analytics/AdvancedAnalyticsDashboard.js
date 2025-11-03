@@ -425,7 +425,7 @@ const AdvancedAnalyticsDashboard = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, rgba(0,48,97,0.05) 0%, rgba(248,250,252,1) 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -450,7 +450,7 @@ const AdvancedAnalyticsDashboard = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, rgba(0,48,97,0.05) 0%, rgba(248,250,252,1) 100%)',
       padding: '2rem'
     }}>
       {/* Header */}
