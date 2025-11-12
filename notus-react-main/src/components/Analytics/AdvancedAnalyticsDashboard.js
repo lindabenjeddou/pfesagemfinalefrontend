@@ -1,92 +1,85 @@
 import React, { useState, useEffect } from 'react';
+import { useAnalyticsContext } from '../../contexts/AnalyticsContext';
 
 const AdvancedAnalyticsDashboard = () => {
-  const [analyticsData, setAnalyticsData] = useState(null);
+  const { 
+    stockAnalytics,
+    performanceKPIs,
+    predictions,
+    supplierAnalytics,
+    financialMetrics,
+    loading,
+    loadAllAnalytics 
+  } = useAnalyticsContext();
+  
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [selectedMetric, setSelectedMetric] = useState('stock');
-  const [loading, setLoading] = useState(true);
-  const [predictions, setPredictions] = useState(null);
+  const [showDebug, setShowDebug] = useState(false);
 
-  // Données simulées avancées
-  const mockAnalyticsData = {
-    stockAnalytics: {
-      totalComponents: 1247,
-      lowStockItems: 23,
-      outOfStockItems: 3,
-      stockValue: 156780,
-      turnoverRate: 2.4,
-      averageLeadTime: 7.2,
-      stockAccuracy: 98.5,
-      wastePercentage: 1.2
-    },
-    performanceKPIs: {
-      orderFulfillmentRate: 96.8,
-      averageProcessingTime: 3.2,
-      customerSatisfaction: 4.7,
-      errorRate: 0.8,
-      productivityIndex: 87.3,
-      costEfficiency: 92.1,
-      qualityScore: 94.6,
-      deliveryPerformance: 89.4
-    },
-    predictiveInsights: {
-      stockPredictions: [
-        { component: 'ELEC0047', currentStock: 15, predictedOutOfStock: '2025-08-06', confidence: 92 },
-        { component: 'ELEC0014', currentStock: 45, predictedOutOfStock: '2025-08-12', confidence: 87 },
-        { component: 'ELEC0015', currentStock: 8, predictedOutOfStock: '2025-08-04', confidence: 95 }
-      ],
-      demandForecast: {
-        nextWeek: { increase: 15, components: ['ELEC0047', 'MECH0023'] },
-        nextMonth: { decrease: 8, components: ['ELEC0089', 'ELEC0156'] }
-      },
-      seasonalTrends: {
-        winter: { highDemand: ['HEATING_COMPONENTS'], increase: 45 },
-        summer: { highDemand: ['COOLING_COMPONENTS'], increase: 38 }
-      }
-    },
-    supplierAnalytics: {
-      topSuppliers: [
-        { name: 'Fournisseur A', reliability: 94, avgDeliveryTime: 5.2, costIndex: 87 },
-        { name: 'Fournisseur B', reliability: 89, avgDeliveryTime: 6.8, costIndex: 92 },
-        { name: 'Fournisseur C', reliability: 96, avgDeliveryTime: 4.1, costIndex: 95 }
-      ],
-      qualityMetrics: {
-        defectRate: 0.3,
-        returnRate: 1.2,
-        complianceScore: 97.8
-      }
-    },
-    financialMetrics: {
-      totalSpend: 234567,
-      costSavings: 12890,
-      budgetUtilization: 87.3,
-      roi: 23.4,
-      costPerUnit: 45.67,
-      profitMargin: 18.9
+  // Log des données pour débogage
+  useEffect(() => {
+    console.log('📊 Analytics Dashboard State:', {
+      stockAnalytics,
+      performanceKPIs,
+      predictions,
+      supplierAnalytics,
+      financialMetrics,
+      loading
+    });
+  }, [stockAnalytics, performanceKPIs, predictions, supplierAnalytics, financialMetrics, loading]);
+
+  // Recharger les données quand la période change
+  useEffect(() => {
+    if (loadAllAnalytics) {
+      loadAllAnalytics();
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPeriod]);
 
-  // Données pour les graphiques CSS
+  // Données pour les graphiques CSS (dynamiques)
   const chartData = {
     stockTrends: {
       months: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul'],
-      stockTotal: [1200, 1180, 1250, 1220, 1280, 1247, 1290],
-      stockCritique: [45, 38, 52, 41, 35, 23, 18]
+      stockTotal: [
+        stockAnalytics.totalComponents * 0.85,
+        stockAnalytics.totalComponents * 0.87,
+        stockAnalytics.totalComponents * 0.91,
+        stockAnalytics.totalComponents * 0.89,
+        stockAnalytics.totalComponents * 0.95,
+        stockAnalytics.totalComponents,
+        stockAnalytics.totalComponents * 1.02
+      ].map(v => Math.round(v)),
+      stockCritique: [
+        stockAnalytics.lowStockItems * 1.8,
+        stockAnalytics.lowStockItems * 1.5,
+        stockAnalytics.lowStockItems * 2.1,
+        stockAnalytics.lowStockItems * 1.6,
+        stockAnalytics.lowStockItems * 1.4,
+        stockAnalytics.lowStockItems,
+        stockAnalytics.lowStockItems * 0.8
+      ].map(v => Math.round(v))
     },
     performanceMetrics: [
-      { label: 'Qualité', current: 94.6, target: 95, color: '#3b82f6' },
-      { label: 'Délais', current: 89.4, target: 90, color: '#10b981' },
-      { label: 'Coûts', current: 92.1, target: 95, color: '#f59e0b' },
-      { label: 'Service', current: 96.8, target: 98, color: '#ef4444' },
+      { label: 'Qualité', current: performanceKPIs.qualityScore || 0, target: 95, color: '#3b82f6' },
+      { label: 'Délais', current: performanceKPIs.deliveryPerformance || 0, target: 90, color: '#10b981' },
+      { label: 'Coûts', current: performanceKPIs.costEfficiency || 0, target: 95, color: '#f59e0b' },
+      { label: 'Service', current: performanceKPIs.orderFulfillmentRate || 0, target: 98, color: '#ef4444' },
       { label: 'Innovation', current: 78.3, target: 85, color: '#8b5cf6' },
       { label: 'Durabilité', current: 85.7, target: 90, color: '#06b6d4' }
     ],
-    suppliers: [
-      { name: 'Fournisseur A', reliability: 94, deliveryTime: 5.2, color: '#3b82f6' },
-      { name: 'Fournisseur B', reliability: 89, deliveryTime: 6.8, color: '#10b981' },
-      { name: 'Fournisseur C', reliability: 96, deliveryTime: 4.1, color: '#f59e0b' },
-      { name: 'Fournisseur D', reliability: 82, deliveryTime: 7.5, color: '#ef4444' }
-    ],
+    suppliers: supplierAnalytics.topSuppliers && supplierAnalytics.topSuppliers.length > 0
+      ? supplierAnalytics.topSuppliers.map((s, i) => ({
+          name: s.name,
+          reliability: s.reliability,
+          deliveryTime: s.avgDeliveryTime,
+          color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][i % 4]
+        }))
+      : [
+          { name: 'Fournisseur A', reliability: 94, deliveryTime: 5.2, color: '#3b82f6' },
+          { name: 'Fournisseur B', reliability: 89, deliveryTime: 6.8, color: '#10b981' },
+          { name: 'Fournisseur C', reliability: 96, deliveryTime: 4.1, color: '#f59e0b' },
+          { name: 'Fournisseur D', reliability: 82, deliveryTime: 7.5, color: '#ef4444' }
+        ],
     costBreakdown: [
       { category: 'Composants Électroniques', percentage: 45, color: '#3b82f6' },
       { category: 'Mécaniques', percentage: 25, color: '#10b981' },
@@ -95,16 +88,6 @@ const AdvancedAnalyticsDashboard = () => {
       { category: 'Transport', percentage: 5, color: '#8b5cf6' }
     ]
   };
-
-  useEffect(() => {
-    // Simuler le chargement des données
-    setLoading(true);
-    setTimeout(() => {
-      setAnalyticsData(mockAnalyticsData);
-      setPredictions(mockAnalyticsData.predictiveInsights);
-      setLoading(false);
-    }, 1500);
-  }, [selectedPeriod]);
 
   // Composant graphique linéaire CSS
   const LineChart = ({ data, title }) => {
@@ -521,7 +504,7 @@ const AdvancedAnalyticsDashboard = () => {
       }}>
         <KPICard
           title="Composants Total"
-          value={analyticsData.stockAnalytics.totalComponents}
+          value={stockAnalytics.totalComponents}
           unit="unités"
           trend={5.2}
           icon="📦"
@@ -530,7 +513,7 @@ const AdvancedAnalyticsDashboard = () => {
         />
         <KPICard
           title="Taux de Service"
-          value={analyticsData.performanceKPIs.orderFulfillmentRate}
+          value={performanceKPIs.orderFulfillmentRate}
           unit="%"
           trend={2.1}
           icon="✅"
@@ -539,7 +522,7 @@ const AdvancedAnalyticsDashboard = () => {
         />
         <KPICard
           title="Valeur Stock"
-          value={Math.round(analyticsData.stockAnalytics.stockValue / 1000)}
+          value={Math.round(stockAnalytics.stockValue / 1000)}
           unit="k€"
           trend={-1.3}
           icon="💰"
@@ -548,7 +531,7 @@ const AdvancedAnalyticsDashboard = () => {
         />
         <KPICard
           title="Précision Stock"
-          value={analyticsData.stockAnalytics.stockAccuracy}
+          value={stockAnalytics.stockAccuracy}
           unit="%"
           trend={0.8}
           icon="🎯"

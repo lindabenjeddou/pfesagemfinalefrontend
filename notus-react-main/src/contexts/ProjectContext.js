@@ -161,14 +161,19 @@ export const ProjectProvider = ({ children }) => {
   const fetchProjects = async () => {
     dispatch({ type: PROJECT_ACTIONS.SET_LOADING, payload: { type: 'projects', value: true } });
     try {
-      const response = await fetch(`${API_BASE}/PI/PI/projects/all`);
+      const url = `${API_BASE}/projects/all`;
+      console.log('🔄 Fetching projects from:', url);
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Projects loaded:', data.length, 'items');
         dispatch({ type: PROJECT_ACTIONS.SET_PROJECTS, payload: data });
       } else {
+        console.error('❌ Failed to fetch projects:', response.status);
         throw new Error('Erreur lors de la récupération des projets');
       }
     } catch (error) {
+      console.error('❌ Error fetching projects:', error.message);
       dispatch({ type: PROJECT_ACTIONS.SET_ERROR, payload: error.message });
     } finally {
       dispatch({ type: PROJECT_ACTIONS.SET_LOADING, payload: { type: 'projects', value: false } });
@@ -178,7 +183,7 @@ export const ProjectProvider = ({ children }) => {
   const createProject = async (projectData) => {
     dispatch({ type: PROJECT_ACTIONS.SET_LOADING, payload: { type: 'projects', value: true } });
     try {
-      const response = await fetch(`${API_BASE}/PI/PI/projects/add`, {
+      const response = await fetch(`${API_BASE}/projects/add`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(projectData)
@@ -204,15 +209,19 @@ export const ProjectProvider = ({ children }) => {
     try {
       const url = projectId 
         ? `${API_BASE}/sousprojets/project/${projectId}`
-        : `${API_BASE}/sousprojets/all`;
+        : `${API_BASE}/sousprojets/`;
+      console.log('🔄 Fetching sous-projets from:', url);
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Sous-projets loaded:', data.length, 'items');
         dispatch({ type: PROJECT_ACTIONS.SET_SOUS_PROJECTS, payload: data });
       } else {
+        console.error('❌ Failed to fetch sous-projets:', response.status);
         throw new Error('Erreur lors de la récupération des sous-projets');
       }
     } catch (error) {
+      console.error('❌ Error fetching sous-projets:', error.message);
       dispatch({ type: PROJECT_ACTIONS.SET_ERROR, payload: error.message });
     } finally {
       dispatch({ type: PROJECT_ACTIONS.SET_LOADING, payload: { type: 'sousProjects', value: false } });
@@ -301,6 +310,7 @@ export const ProjectProvider = ({ children }) => {
   // Charger les données initiales
   useEffect(() => {
     fetchProjects();
+    fetchSousProjects();
     fetchUsers();
     fetchComponents();
   }, []);

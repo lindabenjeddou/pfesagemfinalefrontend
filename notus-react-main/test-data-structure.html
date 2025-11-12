@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Structure des Données</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+        .stat-box {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .structure-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .structure-table th,
+        .structure-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .structure-table th {
+            background: #667eea;
+            color: white;
+        }
+        .structure-table tr:hover {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test Structure des Données API</h1>
+        <p>Cet outil vous permet de vérifier la structure exacte des données renvoyées par votre API backend.</p>
+
+        <!-- Section Composants -->
+        <div class="test-section">
+            <h2>📦 Test Composants (Components)</h2>
+            <button onclick="testComponents()">🧪 Tester /component/all</button>
+            <button onclick="analyzeComponentPrices()">💰 Analyser les Prix</button>
+            <button onclick="checkMissingPrices()">⚠️ Composants Sans Prix</button>
+            <div id="components-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Section Interventions -->
+        <div class="test-section">
+            <h2>🔧 Test Interventions (Demandes)</h2>
+            <button onclick="testInterventions()">🧪 Tester /demandes/recuperer/all</button>
+            <button onclick="analyzeConfirmationRate()">✅ Analyser Taux Confirmation</button>
+            <div id="interventions-result" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Section SQL Generator -->
+        <div class="test-section">
+            <h2>🛠️ Générateur SQL</h2>
+            <button onclick="generatePriceSQL()">📝 Générer SQL pour Prix</button>
+            <button onclick="generateConfirmationSQL()">📝 Générer SQL pour Confirmations</button>
+            <div id="sql-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8089/PI/PI';
+        
+        function log(elementId, message, type = 'info') {
+            const resultDiv = document.getElementById(elementId);
+            resultDiv.style.display = 'block';
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            resultDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+        }
+
+        function clearLog(elementId) {
+            const resultDiv = document.getElementById(elementId);
+            resultDiv.innerHTML = '';
+            resultDiv.style.display = 'none';
+        }
+
+        async function testComponents() {
+            clearLog('components-result');
+            log('components-result', '🔄 Fetching components...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/component/all`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const components = await response.json();
+                log('components-result', `✅ SUCCESS - ${components.length} components found`, 'success');
+                
+                // Statistiques
+                const withPrice = components.filter(c => c.price && parseFloat(c.price) > 0).length;
+                const totalValue = components.reduce((sum, c) => sum + (parseFloat(c.price || 0) * parseInt(c.quantity || 0)), 0);
+                const avgPrice = components.reduce((sum, c) => sum + parseFloat(c.price || 0), 0) / components.length;
+                
+                log('components-result', `<div class="stat-box">Total: ${components.length}</div>
+                    <div class="stat-box">Avec Prix: ${withPrice}</div>
+                    <div class="stat-box">Sans Prix: ${components.length - withPrice}</div>
+                    <div class="stat-box">Valeur Total: ${totalValue.toFixed(2)} DT</div>
+                    <div class="stat-box">Prix Moyen: ${avgPrice.toFixed(2)} DT</div>`);
+                
+                // Structure du premier composant
+                if (components.length > 0) {
+                    log('components-result', '<strong>📋 Structure du premier composant:</strong>');
+                    log('components-result', `<pre>${JSON.stringify(components[0], null, 2)}</pre>`);
+                    
+                    // Table des champs
+                    const fields = Object.keys(components[0]);
+                    let tableHTML = '<table class="structure-table"><thead><tr><th>Champ</th><th>Type</th><th>Exemple</th></tr></thead><tbody>';
+                    fields.forEach(field => {
+                        const value = components[0][field];
+                        const type = typeof value;
+                        tableHTML += `<tr><td><strong>${field}</strong></td><td>${type}</td><td>${value}</td></tr>`;
+                    });
+                    tableHTML += '</tbody></table>';
+                    log('components-result', tableHTML);
+                }
+                
+                // Top 10 par valeur
+                const sorted = components
+                    .map(c => ({
+                        ref: c.referenceComponent || c.reference_component,
+                        name: c.name,
+                        value: (parseFloat(c.price || 0) * parseInt(c.quantity || 0))
+                    }))
+                    .sort((a, b) => b.value - a.value)
+                    .slice(0, 10);
+                
+                log('components-result', '<strong>🏆 Top 10 par valeur:</strong>');
+                sorted.forEach((item, i) => {
+                    log('components-result', `${i+1}. ${item.ref} - ${item.name}: ${item.value.toFixed(2)} DT`);
+                });
+                
+            } catch (error) {
+                log('components-result', `❌ ERROR: ${error.message}`, 'error');
+                log('components-result', '💡 Vérifiez que votre backend est démarré sur http://localhost:8089', 'warning');
+            }
+        }
+
+        async function analyzeComponentPrices() {
+            clearLog('components-result');
+            log('components-result', '🔄 Analyzing prices...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/component/all`);
+                const components = await response.json();
+                
+                const withoutPrice = components.filter(c => !c.price || parseFloat(c.price) === 0);
+                const withPrice = components.filter(c => c.price && parseFloat(c.price) > 0);
+                
+                log('components-result', `<div class="stat-box">Total: ${components.length}</div>
+                    <div class="stat-box success">✅ Avec Prix: ${withPrice.length}</div>
+                    <div class="stat-box error">❌ Sans Prix: ${withoutPrice.length}</div>`);
+                
+                if (withoutPrice.length > 0) {
+                    log('components-result', '<strong>⚠️ Composants sans prix (premiers 20):</strong>', 'warning');
+                    withoutPrice.slice(0, 20).forEach(c => {
+                        log('components-result', `- ${c.referenceComponent || c.reference_component}: ${c.name} (qty: ${c.quantity})`);
+                    });
+                }
+                
+                if (withPrice.length > 0) {
+                    const prices = withPrice.map(c => parseFloat(c.price));
+                    const minPrice = Math.min(...prices);
+                    const maxPrice = Math.max(...prices);
+                    const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+                    
+                    log('components-result', `<div class="stat-box">Min: ${minPrice.toFixed(2)} DT</div>
+                        <div class="stat-box">Max: ${maxPrice.toFixed(2)} DT</div>
+                        <div class="stat-box">Moyenne: ${avgPrice.toFixed(2)} DT</div>`);
+                }
+                
+            } catch (error) {
+                log('components-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkMissingPrices() {
+            clearLog('components-result');
+            log('components-result', '🔄 Checking missing prices...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/component/all`);
+                const components = await response.json();
+                
+                const withoutPrice = components.filter(c => !c.price || parseFloat(c.price) === 0);
+                
+                if (withoutPrice.length === 0) {
+                    log('components-result', '✅ Tous les composants ont un prix!', 'success');
+                } else {
+                    log('components-result', `⚠️ ${withoutPrice.length} composants n'ont pas de prix`, 'warning');
+                    log('components-result', '<strong>Références concernées:</strong>');
+                    withoutPrice.forEach(c => {
+                        log('components-result', `- ${c.referenceComponent || c.reference_component}`);
+                    });
+                }
+                
+            } catch (error) {
+                log('components-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInterventions() {
+            clearLog('interventions-result');
+            log('interventions-result', '🔄 Fetching interventions...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:8089/PI/demandes/recuperer/all');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const interventions = await response.json();
+                log('interventions-result', `✅ SUCCESS - ${interventions.length} interventions found`, 'success');
+                
+                const confirmed = interventions.filter(i => i.isConfirmed || i.is_confirmed).length;
+                const pending = interventions.length - confirmed;
+                const rate = interventions.length > 0 ? (confirmed / interventions.length * 100).toFixed(1) : 0;
+                
+                log('interventions-result', `<div class="stat-box">Total: ${interventions.length}</div>
+                    <div class="stat-box success">✅ Confirmées: ${confirmed}</div>
+                    <div class="stat-box warning">⏳ En Attente: ${pending}</div>
+                    <div class="stat-box">Taux: ${rate}%</div>`);
+                
+                if (interventions.length > 0) {
+                    log('interventions-result', '<strong>📋 Structure d\'une intervention:</strong>');
+                    log('interventions-result', `<pre>${JSON.stringify(interventions[0], null, 2)}</pre>`);
+                }
+                
+            } catch (error) {
+                log('interventions-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function analyzeConfirmationRate() {
+            clearLog('interventions-result');
+            log('interventions-result', '🔄 Analyzing confirmation rate...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:8089/PI/demandes/recuperer/all');
+                const interventions = await response.json();
+                
+                const confirmed = interventions.filter(i => i.isConfirmed || i.is_confirmed).length;
+                const rate = interventions.length > 0 ? (confirmed / interventions.length * 100).toFixed(1) : 0;
+                
+                log('interventions-result', `<div class="stat-box ${rate > 50 ? 'success' : 'warning'}">Taux de Confirmation: ${rate}%</div>`);
+                
+                if (rate === 0) {
+                    log('interventions-result', '⚠️ Aucune intervention confirmée!', 'warning');
+                    log('interventions-result', '💡 Utilisez le générateur SQL pour confirmer des interventions', 'info');
+                } else if (rate < 50) {
+                    log('interventions-result', '⚠️ Taux de confirmation faible', 'warning');
+                } else {
+                    log('interventions-result', '✅ Bon taux de confirmation', 'success');
+                }
+                
+            } catch (error) {
+                log('interventions-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function generatePriceSQL() {
+            clearLog('sql-result');
+            log('sql-result', '🔄 Analyzing components...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/component/all`);
+                const components = await response.json();
+                
+                const withoutPrice = components.filter(c => !c.price || parseFloat(c.price) === 0);
+                
+                if (withoutPrice.length === 0) {
+                    log('sql-result', '✅ Tous les composants ont déjà un prix!', 'success');
+                    return;
+                }
+                
+                log('sql-result', `📝 SQL généré pour ${withoutPrice.length} composants:`, 'info');
+                
+                let sql = '-- Mise à jour des prix\n';
+                sql += '-- Exécutez ce code dans votre base de données\n\n';
+                
+                withoutPrice.slice(0, 50).forEach(c => {
+                    const ref = c.referenceComponent || c.reference_component;
+                    let suggestedPrice = 5.00; // Prix par défaut
+                    
+                    if (ref.startsWith('ELEC')) suggestedPrice = 3.50;
+                    if (ref.startsWith('MECH')) suggestedPrice = 1.00;
+                    if (ref.startsWith('SOFT')) suggestedPrice = 10.00;
+                    
+                    sql += `UPDATE component SET price = ${suggestedPrice} WHERE reference_component = '${ref}';\n`;
+                });
+                
+                if (withoutPrice.length > 50) {
+                    sql += `\n-- ... et ${withoutPrice.length - 50} autres composants\n`;
+                    sql += `-- Pour mettre à jour tous en une fois:\n`;
+                    sql += `UPDATE component SET price = 5.00 WHERE price IS NULL OR price = 0;\n`;
+                }
+                
+                log('sql-result', `<pre>${sql}</pre>`);
+                log('sql-result', '💡 Copiez ce code et exécutez-le dans votre base de données', 'info');
+                
+            } catch (error) {
+                log('sql-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        async function generateConfirmationSQL() {
+            clearLog('sql-result');
+            log('sql-result', '🔄 Analyzing interventions...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:8089/PI/demandes/recuperer/all');
+                const interventions = await response.json();
+                
+                const pending = interventions.filter(i => !(i.isConfirmed || i.is_confirmed));
+                
+                if (pending.length === 0) {
+                    log('sql-result', '✅ Toutes les interventions sont déjà confirmées!', 'success');
+                    return;
+                }
+                
+                log('sql-result', `📝 SQL généré pour confirmer 60% des interventions:`, 'info');
+                
+                let sql = '-- Confirmer 60% des interventions\n';
+                sql += '-- Exécutez ce code dans votre base de données\n\n';
+                
+                const toConfirm = Math.floor(interventions.length * 0.6);
+                sql += `UPDATE demande SET is_confirmed = 1 WHERE id IN (\n`;
+                sql += `  SELECT id FROM (\n`;
+                sql += `    SELECT id FROM demande ORDER BY RAND() LIMIT ${toConfirm}\n`;
+                sql += `  ) as temp\n`;
+                sql += `);\n\n`;
+                
+                sql += `-- Ou plus simple: Confirmer les ${toConfirm} premières\n`;
+                sql += `UPDATE demande SET is_confirmed = 1 WHERE id <= ${toConfirm};\n`;
+                
+                log('sql-result', `<pre>${sql}</pre>`);
+                log('sql-result', '💡 Copiez ce code et exécutez-le dans votre base de données', 'info');
+                
+            } catch (error) {
+                log('sql-result', `❌ ERROR: ${error.message}`, 'error');
+            }
+        }
+
+        // Test au chargement
+        window.onload = () => {
+            console.log('🧪 Outil de test de structure de données chargé');
+            console.log('API Base:', API_BASE);
+        };
+    </script>
+</body>
+</html>

@@ -12,6 +12,7 @@ import { LanguageProvider } from "contexts/LanguageContext";
 
 // Advanced Contexts
 import { ProjectProvider } from "contexts/ProjectContext";
+import { AnalyticsProvider } from "contexts/AnalyticsContext";
 import { SecurityProvider } from "contexts/SecurityContext";
 import { NotificationProvider } from "components/Notifications/NotificationSystem";
 
@@ -56,7 +57,8 @@ ReactDOM.render(
       <NotificationProvider>
         <SecurityProvider>
           <ProjectProvider>
-            <BrowserRouter>
+            <AnalyticsProvider>
+              <BrowserRouter>
             <Switch>
               {/* add routes with layouts */}
               <Route path="/admin" component={Admin} />
@@ -70,7 +72,8 @@ ReactDOM.render(
               <Redirect from="*" to="/" />
             </Switch>
             <InstallPWA />
-            </BrowserRouter>
+              </BrowserRouter>
+            </AnalyticsProvider>
           </ProjectProvider>
         </SecurityProvider>
       </NotificationProvider>

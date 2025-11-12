@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useSecurity } from "../../contexts/SecurityContext";
 import AdvancedPagination from "../../components/Pagination/AdvancedPagination";
@@ -20,10 +20,9 @@ export default function Interventions() {
     demandeurNom: '',
     demandeurEmail: ''
   });
-  const [userDetails, setUserDetails] = useState(null);
 
   // Fonction pour récupérer les vraies données utilisateur depuis l'API
-  const fetchUserDetails = async () => {
+  const fetchUserDetails = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       
@@ -38,7 +37,6 @@ export default function Interventions() {
       };
       
       // Définir les données de fallback immédiatement
-      setUserDetails(defaultFallbackData);
       setFormData(prev => ({
         ...prev,
         demandeurId: user?.userId || user?.id,
@@ -58,7 +56,6 @@ export default function Interventions() {
         const currentUser = users.find(u => u.id === user?.userId);
         
         if (currentUser) {
-          setUserDetails(currentUser);
           setFormData(prev => ({
             ...prev,
             demandeurId: currentUser.id,
@@ -70,18 +67,14 @@ export default function Interventions() {
     } catch (error) {
       console.error('Erreur fetch:', error);
     }
-  };
+  }, [user]);
 
   // Mettre à jour les données du demandeur quand l'utilisateur change
   useEffect(() => {
     fetchUserDetails();
-  }, [user]);
+  }, [user, fetchUserDetails]);
 
-  useEffect(() => {
-    fetchInterventions();
-  }, []);
-
-  const fetchInterventions = async () => {
+  const fetchInterventions = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -103,7 +96,11 @@ export default function Interventions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchInterventions();
+  }, [fetchInterventions]);
 
   const createIntervention = async (e) => {
     e.preventDefault();

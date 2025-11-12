@@ -10,6 +10,15 @@ const EnhancedAnalyticsDashboard = () => {
   const canvasRef = useRef(null);
 
   const stats = getStatistics();
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('📊 Analytics Dashboard - Data State:', {
+      projects: projects.length,
+      sousProjects: sousProjects.length,
+      stats
+    });
+  }, [projects, sousProjects]);
 
   // Données pour les graphiques avancés
   const chartData = {
